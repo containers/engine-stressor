@@ -1,6 +1,6 @@
 # engine-stressor
 
-A stressor tool for containers engines.
+A stressor tool for container engines.
 
 This latest revision is based on Podman, cgroupv2, and systemd. It creates a cgroupv2 namespace with limited resources according to user input and starts 'N' containers to ensure Podman engine behaves correctly.
 
