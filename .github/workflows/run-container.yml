@@ -30,7 +30,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y make
 
       - name: Run make install
-        run: make install
+        run: sudo make install
 
       - name: Pull Docker image
         run: docker pull quay.io/centos-sig-automotive/automotive-osbuild
