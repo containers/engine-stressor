@@ -41,7 +41,7 @@ jobs:
             LIST_CURRENT_STATE=true \
             VERBOSE=true \
             CLEANUP=false \
-            TIMEOUT_PODMAN_STOP_CONTAINER=5 \
+            TIMEOUT_PODMAN_STOP_CONTAINER=100 \
             NETWORK_NAME="my-network" \
             VOLUME_NAME="my-volume" \
             IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
