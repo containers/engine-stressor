@@ -41,10 +41,10 @@ jobs:
             LIST_CURRENT_STATE=true \
             VERBOSE=true \
             CLEANUP=false \
-            TIMEOUT_PODMAN_STOP_CONTAINER=100 \
+            TIMEOUT_PODMAN_STOP_CONTAINER=5 \
             NETWORK_NAME="my-network" \
             VOLUME_NAME="my-volume" \
             IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
             IMAGE_COMMAND="sleep 3600" \
-            NUMBER_OF_CONTAINERS="5" \
+            NUMBER_OF_CONTAINERS="100" \
             ./engine-stressor
