@@ -46,5 +46,5 @@ jobs:
             VOLUME_NAME="my-volume" \
             IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
             IMAGE_COMMAND="sleep 3600" \
-            NUMBER_OF_CONTAINERS="100" \
+            NUMBER_OF_CONTAINERS="1000" \
             ./engine-stressor
