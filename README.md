@@ -8,6 +8,10 @@ Additionally, it is possible to enable a stress feature that uses the stress-ng 
 
 Furthermore, it is an excellent way to test container scalability and interference between containers using Podman, allowing you to trigger 100, 1k, 5k, or even 1 million containers.
 
+Why this project?
+
+When working in the auto industry, it's important to prove for certifications that components in the entire solution are as resilient as possible and do not fail in the initial rounds in different angles of tests.
+
 Why bash?
 
 We just call existing programs, no need to add extra layer of python, golang or rust for calling program at this moment.
