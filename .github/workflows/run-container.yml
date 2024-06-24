@@ -1,4 +1,4 @@
-name: Install and Run Engine Stressor
+name: Engine Stressor - Install and Run
 
 on:
   push:

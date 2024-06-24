@@ -1,4 +1,4 @@
-name: Engine Stressor Test
+name: Beakerlib - Install and run Engine Stressor via Beakerlib
 
 on:
   schedule:
