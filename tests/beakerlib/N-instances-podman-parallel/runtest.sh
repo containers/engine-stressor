@@ -39,6 +39,8 @@ rlJournalStart
             IMAGE_COMMAND=\"sleep 3600\" \
             NUMBER_OF_CONTAINERS=\"100\" \
             ./engine-stressor"' 0 "Run engine-stressor with the specified environment variables"
+
+        rlAssert0 "engine-stressor ran successfully" $? # Assert to check if the previous command ran successfully
     rlPhaseEnd
 
     rlPhaseStartCleanup
