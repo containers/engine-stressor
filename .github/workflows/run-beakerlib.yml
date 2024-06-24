@@ -27,7 +27,6 @@ jobs:
 
       - name: Run BeakerLib script
         run: |
-          git clone https://github.com/containers/engine-stressor
           pushd engine-stressor/tests/beakerlib/N-instances-podman-parallel
               sudo ./runtest.sh
           popd
