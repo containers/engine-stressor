@@ -25,7 +25,7 @@ jobs:
       - name: Run tests in Fedora container
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace fedora:latest /bin/bash -c "
-          dnf install -y podman make git;
+          dnf install -y podman make git beakerlib;
           make;
           make install;
           cd tests/beakerlib/N-instances-podman-parallel;
