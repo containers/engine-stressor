@@ -1,4 +1,4 @@
-summary: Validate if Podman can be resilient against N parallel executions.
+summary: Validate if Podman can be resilient against N parallel executions and under stress, including the use of network and volumes.
 contact: Douglas Schilling Landgraf <dougsland@redhat.com>
 component: podman
 test: bash ./runtest.sh
