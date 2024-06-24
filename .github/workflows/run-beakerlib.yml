@@ -1,4 +1,4 @@
-name: Beakerlib - Install and run Engine Stressor via Beakerlib
+name: Beakerlib - Install and run Engine Stressor
 
 on:
   schedule:
