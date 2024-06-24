@@ -1,0 +1,7 @@
+summary: Validate if Podman can be resilient against N parallel executions.
+contact: Douglas Schilling Landgraf <dougsland@redhat.com>
+component: podman
+test: bash ./runtest.sh
+framework: beakerlib
+duration: 15m
+id: 031f3fa6-d9d5-4ab4-9d01-3f0f9a79bba8
