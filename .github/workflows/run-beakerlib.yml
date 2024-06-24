@@ -20,7 +20,6 @@ jobs:
 
       - name: Install engine-stressor
         run: |
-          cd engine-stressor
           sudo make
           sudo make install
 
@@ -33,5 +32,4 @@ jobs:
 
       - name: Run beakerlib test script
         run: |
-          cd engine-stressor/tests/beakerlib/N-instances-podman-parallel
-          ./runtest.sh
+          ./tests/beakerlib/N-instances-podman-parallel/runtest.sh
