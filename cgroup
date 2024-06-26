@@ -29,11 +29,11 @@ source "$SHARE_DIR/common"
 cgroup_create_env() {
 
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] creating cgroup ${CGROUP_NAME} with total memory limit ${TOTAL_MEMORY_FOR_THE_NAMESPACE}..."
+        echo -e "INFO: creating cgroup ${CGROUP_NAME} with total memory limit ${TOTAL_MEMORY_FOR_THE_NAMESPACE}..."
     fi
 
     if ! sudo mkdir -p "${CGROUP_NAME_PATH}"; then
-        echo -e "[ ${RED}FAIL${NC} ] cgroupv2 ${CGROUP_NAME} fail to create cgroup dir structure"
+        echo -e "FAIL: cgroupv2 ${CGROUP_NAME} fail to create cgroup dir structure"
         return 1
     fi
 
@@ -47,12 +47,12 @@ cgroup_create_env() {
 
     # Set the memory limit for the cgroup
     if ! sudo sh -c "echo \"${TOTAL_MEMORY_FOR_THE_NAMESPACE}\" > "${CGROUP_NAME_PATH}"/memory.max"; then
-        echo -e "[ ${RED}FAIL${NC} ] cgroupv2 ${CGROUP_NAME} fail to set max memory for the cgroup"
+        echo -e "FAIL: cgroupv2 ${CGROUP_NAME} fail to set max memory for the cgroup"
         return 1
     fi
 
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] cgroup ${CGROUP_NAME} created and configured."
+        echo -e "INFO: cgroup ${CGROUP_NAME} created and configured."
     fi
 
     return 0
@@ -65,11 +65,11 @@ cgroup_check_if_memory_limit_is_set_correctly() {
 
     if [[ "${current_limit}" -eq "${EXPECTED_MEMORY_LIMIT}" ]]; then
         if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-            echo -e "[ ${BLUE}INFO${NC} ] The memory.limit_in_bytes is correctly set to ${EXPECTED_MEMORY_LIMIT}."
+            echo -e "INFO: The memory.limit_in_bytes is correctly set to ${EXPECTED_MEMORY_LIMIT}."
 	fi
         return 0
     else
-        echo -e "[ ${RED}FAIL${NC} ] The memory.limit_in_bytes is set to ${current_limit}, expected ${EXPECTED_MEMORY_LIMIT}."
+        echo -e "FAIL: The memory.limit_in_bytes is set to ${current_limit}, expected ${EXPECTED_MEMORY_LIMIT}."
         return 1
     fi
 }
@@ -126,7 +126,7 @@ cgroup_remove() {
     # Check if the cgroup exists
     if [ ! -d "$CGROUP_NAME_PATH" ]; then
         if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-            echo -e "[ ${RED}FAIL${NC} ] cgroup $CGROUP_NAME_PATH does not exist."
+            echo -e "FAIL: cgroup $CGROUP_NAME_PATH does not exist."
 	fi
         return 1
     fi

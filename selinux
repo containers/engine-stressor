@@ -35,10 +35,10 @@ selinux_check_status() {
     SELINUX_STATUS_MUST_BE=$(echo "$SELINUX_STATUS_MUST_BE" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')
 
     if [[ "$current_selinux_status" = "${SELINUX_STATUS_MUST_BE}" ]]; then
-        echo -e "[ ${GREEN}PASS${NC} ] SELinux status is ${SELINUX_STATUS_MUST_BE}"
+        echo -e "PASS: SELinux status is ${SELINUX_STATUS_MUST_BE}"
     else
-        echo -e "[ ${RED}FAIL${NC} ] SELinux is NOT in ${SELINUX_STATUS_MUST_BE} mode in container $container_id."
-        echo -e "[ ${RED}FAIL${NC} ] The current status is: ${current_selinux_status}"
+        echo -e "FAIL: SELinux is NOT in ${SELINUX_STATUS_MUST_BE} mode in container $container_id."
+        echo -e "FAIL: The current status is: ${current_selinux_status}"
         return 1
     fi
     return 0

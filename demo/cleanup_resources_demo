@@ -27,21 +27,21 @@ echo -e "======================"
 echo -e "engine-stressor demo"
 echo -e "======================\n"
 
-echo -e "[ ${BLUE}INFO${NC} ] removing podman resources from the demo..."
+echo -e "INFO: removing podman resources from the demo..."
 
 pushd .. 1> /dev/null || exit 1
 
-    echo -e "[ ${BLUE}INFO${NC} ] removing podman volume used during the demo.."
+    echo -e "INFO: removing podman volume used during the demo.."
     sudo VOLUME_NAME="my_volume" \
         ./engine-operations \
 	    --cleanup-vol &> /dev/null
 
-    echo -e "[ ${BLUE}INFO${NC} ] removing podman network used during the demo.."
+    echo -e "INFO: removing podman network used during the demo.."
     sudo NETWORK_NAME="my_network" \
         ./engine-operations \
 	    --cleanup-net &> /dev/null
 
-    echo -e "[ ${BLUE}INFO${NC} ] removing podman containers used during the demo.."
+    echo -e "INFO: removing podman containers used during the demo.."
     sudo NUMBER_OF_CONTAINERS="3" ./engine-operations \
         --cleanup-cont &> /dev/null
 

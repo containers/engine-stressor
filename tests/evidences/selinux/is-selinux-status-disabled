@@ -19,7 +19,7 @@ SELINUX_STATUS="DISABLED"
 
 # just to make sure our example will work
 cleanenv() {
-    echo -e "[ ${BLUE}INFO${NC} ] Cleaning any file from previous tests..."
+    echo -e "INFO: Cleaning any file from previous tests..."
     sudo podman volume rm "${VOLNAME}" --force &> /dev/null
     sudo podman network rm "${NETNAME}" --force &> /dev/null
 }
@@ -30,19 +30,19 @@ cleanenv
 # executing the program in previous dir
 pushd ../../../ 1> /dev/null || exit 1
 
-echo -e "[ ${BLUE}INFO${NC} ] Executing test: SELinux must be [$SELINUX_STATUS]"
+echo -e "INFO: Executing test: SELinux must be [$SELINUX_STATUS]"
 
-echo -e "[ ${BLUE}INFO${NC} ]"
-echo -e "[ ${BLUE}INFO${NC} ] This test was executed in the following criteria:"
-echo -e "[ ${BLUE}INFO${NC} ]"
-echo -e "[ ${BLUE}INFO${NC} ] Date:" $(current_date)
-echo -e "[ ${BLUE}INFO${NC} ] System information:"
-echo -e "[ ${BLUE}INFO${NC} ] \t - $(system_info)"
-echo -e "[ ${BLUE}INFO${NC} ]"
-echo -e "[ ${BLUE}INFO${NC} ] RPM(s):"
-echo -e "[ ${BLUE}INFO${NC} ] \t - $(rpm_package_version "selinux-policy")"
-echo -e "[ ${BLUE}INFO${NC} ] \t - $(rpm_package_version "libselinux")"
-echo -e "[ ${BLUE}INFO${NC} ]"
+echo -e "INFO:"
+echo -e "INFO: This test was executed in the following criteria:"
+echo -e "INFO:"
+echo -e "INFO: Date:" $(current_date)
+echo -e "INFO: System information:"
+echo -e "INFO: \t - $(system_info)"
+echo -e "INFO:"
+echo -e "INFO: RPM(s):"
+echo -e "INFO: \t - $(rpm_package_version "selinux-policy")"
+echo -e "INFO: \t - $(rpm_package_version "libselinux")"
+echo -e "INFO:"
 
     sudo CLEANUP=false \
          VERBOSE=false \

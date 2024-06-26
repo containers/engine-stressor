@@ -59,13 +59,13 @@ WantedBy=multi-user.target' > $UNIT_FILE_PATH"
 
     # Check if the service is running
     if ! podman exec ${container_name} systemctl is-active --quiet ${SERVICE_NAME}; then
-        echo -e "[ ${RED}FAIL${NC} ]"
-        echo -e "[ ${RED}FAIL${NC} ] cannot validate the systemd TimeoutStopSec=inifinity"
+        echo -e "FAIL:"
+        echo -e "FAIL: cannot validate the systemd TimeoutStopSec=inifinity"
         return 1
     else
         # Stop the service inside the container
         podman exec ${container_name} systemctl stop ${SERVICE_NAME}
-        echo -e "[ ${GREEN}PASS${NC} ] systemd TimeoutStopSec=inifiny is working as expected"
+        echo -e "PASS: systemd TimeoutStopSec=inifiny is working as expected"
     fi
 
     
@@ -86,11 +86,11 @@ services_must_be_disabled() {
 
         # Execute the command inside the container
         if sudo podman exec "${container_name}" ${disabled_now_cmd} 2> /dev/null; then
-	    echo -e "[ ${RED}FAIL${NC} ]"
-            echo -e "[ ${RED}FAIL${NC} ] service ${service} is enabled"
+	    echo -e "FAIL:"
+            echo -e "FAIL: service ${service} is enabled"
         else
-	    echo -e "[ ${BLUE}INFO${NC} ]"
-            echo -e "[ ${GREEN}PASS${NC} ] service ${service} is DISABLED"
+	    echo -e "INFO:"
+            echo -e "PASS: service ${service} is DISABLED"
         fi
     done
 }
@@ -108,9 +108,9 @@ services_must_be_enabled() {
 
         # Execute the command inside the container
         if sudo podman exec "${container_name}" ${enable_now_cmd} 2> /dev/null; then
-            echo -e "[ ${GREEN}PASS${NC} ] service ${service} is enabled"
+            echo -e "PASS: service ${service} is enabled"
         else
-            echo -e "[ ${RED}FAIL${NC} ] service ${service} is disabled"
+            echo -e "FAIL: service ${service} is disabled"
         fi
     done
 }
@@ -120,13 +120,13 @@ enable_and_start_now_service() {
     local service_name=$1
 
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] Enabling and starting service ${service_name}..."
+        echo -e "INFO: Enabling and starting service ${service_name}..."
     fi
         enable_now_cmd="sudo systemctl enable --now ${service_name}"
         if ! sudo podman exec "${container_name}" ${enable_now_cmd}; then
             if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-	        echo -e "[ ${RED}FAIL${NC} ]"
-                echo -e "[ ${RED}FAIL${NC} ] container ${container_name} fail to enable and start service ${service_name}"
+	        echo -e "FAIL:"
+                echo -e "FAIL: container ${container_name} fail to enable and start service ${service_name}"
 	    fi
             return 1
        fi

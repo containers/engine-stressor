@@ -221,7 +221,7 @@ STRESS_VM_STRESSOR_INSTANCES=100
 # Check if one variable is set and the other is not
 if [[ (-n "$STRESS_DISK" && -z "$STRESS_DISK_SIZE") || \
       (-z "$STRESS_DISK" && -n "$STRESS_DISK_SIZE") ]]; then
-    echo -e "[ ${RED}FAIL${NC} ] Error: Both STRESS_DISK and STRESS_DISK_SIZE must be set and not empty if one of them is set."
+    echo -e "FAIL: Error: Both STRESS_DISK and STRESS_DISK_SIZE must be set and not empty if one of them is set."
     exit 1
 fi
 
@@ -234,9 +234,9 @@ if [ -z "$STRESS_TIME" ]; then
        [ -n "${STRESS_NETWORK}" ] ||
        [ -n "${STRESS_TCP}" ] ||
        [ -n "${STRESS_UDP}" ]; then
-        echo -e "[ ${RED}FAIL${NC} ] Exiting with failure because one or more " \
+        echo -e "FAIL: Exiting with failure because one or more " \
             "stress variables are set but STRESS_TIME is not set."
-        echo -e "[ ${RED}FAIL${NC} ] STRESS_TIME ensure the container remains " \
+        echo -e "FAIL: STRESS_TIME ensure the container remains " \
             "running for the duration of the stress test."
         exit 1
     fi

@@ -67,7 +67,7 @@ build_stress_ng_cmd() {
 
 run_stress_cmd() {
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] Running stress-ng in container ${container_name}..."
+        echo -e "INFO: Running stress-ng in container ${container_name}..."
     fi
 
     # Find all container names starting with 'test_container_'
@@ -81,7 +81,7 @@ run_stress_cmd() {
          # Execute the command using eval
          if ! sudo podman exec "${container_name}" ${stress_ng_command}; then
             if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-                echo -e "[ ${RED}FAIL${NC} ] Failed to run stress-ng in container ${container_name}"
+                echo -e "FAIL: Failed to run stress-ng in container ${container_name}"
             fi
             exit 1  # Exit the subshell with an error
         fi

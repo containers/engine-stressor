@@ -28,19 +28,19 @@ echo -e "======================"
 echo -e "engine-stressor demo"
 echo -e "======================\n"
 
-echo -e "[ ${BLUE}INFO${NC} ] listing podman process(es)..."
+echo -e "INFO: listing podman process(es)..."
 sudo podman ps
 
-echo -e "\n[ ${BLUE}INFO${NC} ] listing podman network(s)..."
+echo -e "\nINFO: listing podman network(s)..."
 sudo podman network ls
 
-echo -e "\n[ ${BLUE}INFO${NC} ] listing podman volume(s)..."
+echo -e "\nINFO: listing podman volume(s)..."
 sudo podman volume ls
 
 pushd .. 1> /dev/null || exit 1
     echo
 
-    echo -e "[ ${BLUE}INFO${NC} ] listing resource from cgroup ${CGROUP_NAME}..."
+    echo -e "INFO: listing resource from cgroup ${CGROUP_NAME}..."
     if [ -d "/sys/fs/cgroup/${CGROUP_NAME}" ]; then
         echo "  - cgroup name: ${CGROUP_NAME}"
         echo "  - path: ${CGROUP_NAME_PATH}"

@@ -28,25 +28,25 @@ source "$SHARE_DIR/common"
 list_processes() {
     echo
     # Print header
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
-    echo -e "[ ${BLUE}INFO${NC} ]              ${GREEN}Listing current podman processes${NC}"
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+    echo -e "INFO: ==============================================="
+    echo -e "INFO:              ${GREEN}Listing current podman processes${NC}"
+    echo -e "INFO: ==============================================="
 
     # Execute podman ps and check for errors
     if ! output=$(podman ps 2>&1); then
         echo -e "[ ${RED}ERROR${NC} ] Failed to execute 'podman ps':"
         echo -e "[ ${RED}ERROR${NC} ] $output"
-        echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+        echo -e "INFO: ==============================================="
         exit 1
     fi
 
     # Print the output line by line with the formatted header
     echo "$output" | while IFS= read -r line; do
-        echo -e "[ ${BLUE}INFO${NC} ] $line"
+        echo -e "INFO: $line"
     done
 
     # Print footer
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+    echo -e "INFO: ==============================================="
 }
 
 # Main function to run the script

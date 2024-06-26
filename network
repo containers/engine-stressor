@@ -27,22 +27,22 @@ source "$SHARE_DIR/common"
 # Function to create a network
 create_network() {
     if [ -z "${NETWORK_NAME}" ]; then
-        echo -e "[ ${RED}FAIL${NC} ] NETWORK_NAME must be defined in constant file"
+        echo -e "FAIL: NETWORK_NAME must be defined in constant file"
         return 1
 	#exit 255
     fi
 
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] creating network ${NETWORK_NAME}"
+        echo -e "INFO: creating network ${NETWORK_NAME}"
     fi
 
     if ! podman network create "${NETWORK_NAME}" 1> /dev/null; then
-        echo -e "[ ${RED}FAIL${NC} ] unable to create network ${NETWORK_NAME}"
+        echo -e "FAIL: unable to create network ${NETWORK_NAME}"
 	return 1
 	#exit 255
     fi
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${GREEN}PASS${NC} ] network ${NETWORK_NAME} created."
+        echo -e "PASS: network ${NETWORK_NAME} created."
     fi
     return 0
     #exit 0
@@ -51,22 +51,22 @@ create_network() {
 # Function to remove a network
 remove_network() {
     if [ -z "${NETWORK_NAME}" ]; then
-        echo -e "[ ${RED}FAIL${NC} ] NETWORK_NAME must be defined in constant file"
+        echo -e "FAIL: NETWORK_NAME must be defined in constant file"
         return 1
 	#exit 255
     fi
 
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] removing network ${NETWORK_NAME}"
+        echo -e "INFO: removing network ${NETWORK_NAME}"
     fi
 
     if ! podman network rm "${NETWORK_NAME}" --force 1> /dev/null; then
-        echo -e "[ ${RED}FAIL${NC} ] unable to remove network $NETWORK_NAME."
+        echo -e "FAIL: unable to remove network $NETWORK_NAME."
 	return 1
 	#exit 255
     fi
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${GREEN}PASS${NC} ] network ${NETWORK_NAME} removed."
+        echo -e "PASS: network ${NETWORK_NAME} removed."
     fi
     return 0
 }
@@ -75,25 +75,25 @@ remove_network() {
 list_networks() {
     echo
     # Print header
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
-    echo -e "[ ${BLUE}INFO${NC} ]              ${GREEN}Listing current podman network${NC}"
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+    echo -e "INFO: ==============================================="
+    echo -e "INFO:              ${GREEN}Listing current podman network${NC}"
+    echo -e "INFO: ==============================================="
 
     # Execute podman network ls and check for errors
     if ! output=$(podman network ls 2>&1); then
         echo -e "[ ${RED}ERROR${NC} ] Failed to execute 'podman network ls':"
         echo -e "[ ${RED}ERROR${NC} ] $output"
-        echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+        echo -e "INFO: ==============================================="
         exit 1
     fi
 
     # Print the output line by line with the formatted header
     echo "$output" | while IFS= read -r line; do
-        echo -e "[ ${BLUE}INFO${NC} ] $line"
+        echo -e "INFO: $line"
     done
 
     # Print footer
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+    echo -e "INFO: ==============================================="
 }
 
 # Main function to run the script

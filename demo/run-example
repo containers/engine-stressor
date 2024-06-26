@@ -38,13 +38,13 @@ echo -e "engine-stressor demo"
 echo -e "======================\n"
 
 # Just make sure we are in a fresh env
-echo -e "[ ${BLUE}INFO${NC} ] Cleaning previous engine-stressor container volume settings..."
+echo -e "INFO: Cleaning previous engine-stressor container volume settings..."
 sudo podman volume rm "${VOLNAME}" --force &> /dev/null
 
-echo -e "[ ${BLUE}INFO${NC} ] Cleaning previous engine-stressor container network settings..."
+echo -e "INFO: Cleaning previous engine-stressor container network settings..."
 sudo podman network rm "${NETNAME}" --force &> /dev/null
 
-echo -e "[ ${BLUE}INFO${NC} ] Triggering ${NRM_CONTAINERS} containers with engine-stressor..."
+echo -e "INFO: Triggering ${NRM_CONTAINERS} containers with engine-stressor..."
 pushd .. 1> /dev/null || exit 1
     # starting the engine-stressor
     sudo TOTAL_MEMORY_FOR_THE_NAMESPACE="1G" \
@@ -62,4 +62,4 @@ pushd .. 1> /dev/null || exit 1
     # podman_ps_by_name
 popd 1> /dev/null || exit 1
 
-echo -e "[ ${BLUE}INFO${NC} ] done"
+echo -e "INFO: done"

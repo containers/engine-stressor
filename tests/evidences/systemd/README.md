@@ -15,19 +15,19 @@ $ sudo CLEANUP=true \
 Output:
 ```bash
 $ ./is-TimeoutStopSec_infinity_works
-[ INFO ] Cleaning any file from previous tests...
-[ INFO ] Executing test: systemd TimeoutStopSec=Infinity
-[ INFO ]
-[ INFO ] This test was executed in the following criteria:
-[ INFO ]
-[ INFO ] Date: 2024-05-29 14:50:43 EDT
-[ INFO ] System information:
-[ INFO ] 	 - Fedora Linux 39 (Workstation Edition)
-[ INFO ]
-[ INFO ] RPM(s):
-[ INFO ] 	 - systemd-254.9-1.fc39.x86_64
-[ INFO ]
-[ PASS ] systemd TimeoutStopSec=inifiny is working as expected
+INFO: Cleaning any file from previous tests...
+INFO: Executing test: systemd TimeoutStopSec=Infinity
+INFO:
+INFO: This test was executed in the following criteria:
+INFO:
+INFO: Date: 2024-05-29 14:50:43 EDT
+INFO: System information:
+INFO: 	 - Fedora Linux 39 (Workstation Edition)
+INFO:
+INFO: RPM(s):
+INFO: 	 - systemd-254.9-1.fc39.x86_64
+INFO:
+PASS: systemd TimeoutStopSec=inifiny is working as expected
 ```
 
 ```
@@ -45,19 +45,19 @@ $ sudo CLEANUP=false \
 Output:
 ```bash
 $ ./is-service-disabled
-[ INFO ] Cleaning any file from previous tests...
-[ INFO ] Executing test: service must be disabled in the distro: [podman]
-[ INFO ]
-[ INFO ] This test was executed in the following criteria:
-[ INFO ]
-[ INFO ] Date: 2024-05-29 14:49:14 EDT
-[ INFO ] System information:
-[ INFO ] 	 - Fedora Linux 39 (Workstation Edition)
-[ INFO ]
-[ INFO ] RPM(s):
-[ INFO ] 	 - systemd-254.9-1.fc39.x86_64
-[ INFO ]
-[ PASS ] service podman is DISABLED
+INFO: Cleaning any file from previous tests...
+INFO: Executing test: service must be disabled in the distro: [podman]
+INFO:
+INFO: This test was executed in the following criteria:
+INFO:
+INFO: Date: 2024-05-29 14:49:14 EDT
+INFO: System information:
+INFO: 	 - Fedora Linux 39 (Workstation Edition)
+INFO:
+INFO: RPM(s):
+INFO: 	 - systemd-254.9-1.fc39.x86_64
+INFO:
+PASS: service podman is DISABLED
 ```
 
 ```
@@ -75,18 +75,18 @@ $ ./is-service-disabled
 Output:
 ```bash
 $ ./is-service-enabled
-[ INFO ] Cleaning any file from previous tests...
-[ INFO ] Executing test: service must be disabled in the distro: [podman]
-[ INFO ]
-[ INFO ] This test was executed in the following criteria:
-[ INFO ]
-[ INFO ] Date: 2024-05-29 14:49:59 EDT
-[ INFO ] System information:
-[ INFO ] 	 - Fedora Linux 39 (Workstation Edition)
-[ INFO ]
-[ INFO ] RPM(s):
-[ INFO ] 	 - systemd-254.9-1.fc39.x86_64
-[ INFO ]
-[ FAIL ] service bluechi-controller is disabled
-[ FAIL ] service bluechi-agent is disabled
+INFO: Cleaning any file from previous tests...
+INFO: Executing test: service must be disabled in the distro: [podman]
+INFO:
+INFO: This test was executed in the following criteria:
+INFO:
+INFO: Date: 2024-05-29 14:49:59 EDT
+INFO: System information:
+INFO: 	 - Fedora Linux 39 (Workstation Edition)
+INFO:
+INFO: RPM(s):
+INFO: 	 - systemd-254.9-1.fc39.x86_64
+INFO:
+FAIL: service bluechi-controller is disabled
+FAIL: service bluechi-agent is disabled
 ```

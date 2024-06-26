@@ -24,20 +24,20 @@ fi
 source "$CONSTANTS_FILE"
 
 on_error() {
-    echo -e "[ ${RED}FAIL${NC} ] An error occurred. Exiting..."
+    echo -e "FAIL: An error occurred. Exiting..."
     if [[ "${CLEANUP}" = "${FEATURE_ENABLED}" ]]; then
         if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-            echo -e "[ ${BLUE}INFO${NC} ] Removing total number of containers: ${NUMBER_OF_CONTAINERS}..."
+            echo -e "INFO: Removing total number of containers: ${NUMBER_OF_CONTAINERS}..."
         fi
         ./engine-operations --cleanup-cont
 
         if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-            echo -e "[ ${BLUE}INFO${NC} ] Removing network ${NETWORK_NAME}..."
+            echo -e "INFO: Removing network ${NETWORK_NAME}..."
         fi
         ./engine-operations --cleanup-net
 
         if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-            echo -e "[ ${BLUE}INFO${NC} ] Removing volume ${VOLUME_NAME}..."
+            echo -e "INFO: Removing volume ${VOLUME_NAME}..."
         fi
         ./engine-operations --cleanup-vol
         cgroup_remove

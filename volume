@@ -27,15 +27,15 @@ source "$SHARE_DIR/common"
 # Function to create a volume
 create_volume() {
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] creating volume ${VOLUME_NAME}"
+        echo -e "INFO: creating volume ${VOLUME_NAME}"
     fi
 
     if ! podman volume create "${VOLUME_NAME}" 1> /dev/null; then
-	echo -e "[ ${RED}FAIL${NC} ] unable to create volume ${VOLUME_NAME}."
+	echo -e "FAIL: unable to create volume ${VOLUME_NAME}."
         exit 255
     fi
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${GREEN}PASS${NC} ] volume ${VOLUME_NAME} created."
+        echo -e "PASS: volume ${VOLUME_NAME} created."
     fi
 
 }
@@ -43,15 +43,15 @@ create_volume() {
 # Function to remove a volume
 remove_volume() {
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] removing volume ${VOLUME_NAME}"
+        echo -e "INFO: removing volume ${VOLUME_NAME}"
     fi
 
     if ! podman volume rm "${VOLUME_NAME}" --force 1> /dev/null; then
-	echo -e "[ ${RED}FAIL${NC} ] unable to remove volume ${VOLUME_NAME}"
+	echo -e "FAIL: unable to remove volume ${VOLUME_NAME}"
         exit 255
     fi
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${GREEN}PASS${NC} ] volume ${VOLUME_NAME} removed."
+        echo -e "PASS: volume ${VOLUME_NAME} removed."
     fi
 }
 
@@ -60,25 +60,25 @@ list_volumes() {
     echo
     # Print header
     # Print header
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
-    echo -e "[ ${BLUE}INFO${NC} ]              ${GREEN}Listing current podman volume${NC}"
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+    echo -e "INFO: ==============================================="
+    echo -e "INFO:              ${GREEN}Listing current podman volume${NC}"
+    echo -e "INFO: ==============================================="
 
     # Execute podman volume ls and check for errors
     if ! output=$(podman volume ls 2>&1); then
         echo -e "[ ${RED}ERROR${NC} ] Failed to execute 'podman volume ls':"
         echo -e "[ ${RED}ERROR${NC} ] $output"
-        echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+        echo -e "INFO: ==============================================="
         exit 1
     fi
 
     # Print the output line by line with the formatted header
     echo "$output" | while IFS= read -r line; do
-        echo -e "[ ${BLUE}INFO${NC} ] $line"
+        echo -e "INFO: $line"
     done
 
     # Print footer
-    echo -e "[ ${BLUE}INFO${NC} ] ==============================================="
+    echo -e "INFO: ==============================================="
 }
 
 # Main function to run the script

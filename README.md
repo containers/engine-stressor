@@ -161,8 +161,8 @@ sudo CLEANUP=false \
 Output:
 ```
 <snip>
-[ PASS ] All containers requested are running successfully.
-[ INFO ] Running stress-ng in container test_container_100...
+PASS: All containers requested are running successfully.
+INFO: Running stress-ng in container test_container_100...
 stress-ng: info:  [48] setting to a 1 min, 0 secs run per stressor
 stress-ng: info:  [48] dispatching hogs: 100 vm, 6 cpu, 8 hdd
 stress-ng: info:  [52] setting to a 1 min, 0 secs run per stressor
@@ -218,13 +218,13 @@ sudo CLEANUP=false \
 
 Output
 ```
-[ PASS ] volume my_volume created.
-[ PASS ] network my_network created.
-[ PASS ] All containers requested are running successfully.
-[ PASS ] Total number of containers created in parallel: 100
-[ PASS ] Time taken: 1 seconds.
+PASS: volume my_volume created.
+PASS: network my_network created.
+PASS: All containers requested are running successfully.
+PASS: Total number of containers created in parallel: 100
+PASS: Time taken: 1 seconds.
 
-[ PASS ] All tests passed.
+PASS: All tests passed.
 ```
 
 Checking if really worked:
@@ -256,7 +256,7 @@ sudo CLEANUP=false \
      ./engine-stressor
 
 Error: volume with name my_volume already exists: volume already exists
-[ FAIL ] unable to create volume my_volume.
+FAIL: unable to create volume my_volume.
 ```
 
 Let's get an output from a more verbose mode (VERBOSE=true plus LIST_CURRENT_STATE=true):
@@ -272,80 +272,80 @@ sudo CLEANUP=true \
      NUMBER_OF_CONTAINERS="3" \
      ./engine-stressor
 
-[ INFO ] =======================================================
-[ INFO ] VERBOSE MODE IS ON
-[ INFO ] =======================================================
-[ INFO ] NETWORK_NAME is my_network
-[ INFO ] VOLUME_NAME is my_volume
-[ INFO ] NUMBER_OF_CONTAINERS is 100
-[ INFO ] IMAGE_NAME is alpine
-[ INFO ] IMAGE_COMMAND is sleep 3600
-[ INFO ] LIST_CURRENT_STATE is set
+INFO: =======================================================
+INFO: VERBOSE MODE IS ON
+INFO: =======================================================
+INFO: NETWORK_NAME is my_network
+INFO: VOLUME_NAME is my_volume
+INFO: NUMBER_OF_CONTAINERS is 100
+INFO: IMAGE_NAME is alpine
+INFO: IMAGE_COMMAND is sleep 3600
+INFO: LIST_CURRENT_STATE is set
 
-[ INFO ] ===============================================
-[ INFO ]              Listing current podman processes
-[ INFO ] ===============================================
-[ INFO ] CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
-[ INFO ] ===============================================
+INFO: ===============================================
+INFO:              Listing current podman processes
+INFO: ===============================================
+INFO: CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
+INFO: ===============================================
 
-[ INFO ] ===============================================
-[ INFO ]              Listing current podman volume
-[ INFO ] ===============================================
-[ INFO ] DRIVER      VOLUME NAME
-[ INFO ] local       test
-[ INFO ] local       super
-[ INFO ] local       dogz
-[ INFO ] local       medogz
-[ INFO ] ===============================================
+INFO: ===============================================
+INFO:              Listing current podman volume
+INFO: ===============================================
+INFO: DRIVER      VOLUME NAME
+INFO: local       test
+INFO: local       super
+INFO: local       dogz
+INFO: local       medogz
+INFO: ===============================================
 
-[ INFO ] ===============================================
-[ INFO ]              Listing current podman network
-[ INFO ] ===============================================
-[ INFO ] NETWORK ID    NAME        DRIVER
-[ INFO ] 41af11b0f3d5  netcow      bridge
-[ INFO ] 2f259bab93aa  podman      bridge
-[ INFO ] ===============================================
-[ INFO ] creating volume my_volume
-[ PASS ] volume my_volume created.
-[ INFO ] creating network my_network
-[ PASS ] network my_network created.
-[ INFO ] creating container test_container_1
-[ INFO ] creating container test_container_2
+INFO: ===============================================
+INFO:              Listing current podman network
+INFO: ===============================================
+INFO: NETWORK ID    NAME        DRIVER
+INFO: 41af11b0f3d5  netcow      bridge
+INFO: 2f259bab93aa  podman      bridge
+INFO: ===============================================
+INFO: creating volume my_volume
+PASS: volume my_volume created.
+INFO: creating network my_network
+PASS: network my_network created.
+INFO: creating container test_container_1
+INFO: creating container test_container_2
 ...
-[ PASS ] All containers requested are running successfully.
-[ PASS ] Total number of containers created in parallel: 100
-[ PASS ] Time taken: 1 seconds.
+PASS: All containers requested are running successfully.
+PASS: Total number of containers created in parallel: 100
+PASS: Time taken: 1 seconds.
 
-[ INFO ] ===============================================
-[ INFO ]              Listing current podman processes
-[ INFO ] ===============================================
-[ INFO ] CONTAINER ID  IMAGE                            COMMAND     CREATED                 STATUS                 PORTS       NAMES
-[ INFO ] 1012e9a1e865  docker.io/library/alpine:latest  sleep 3600  Less than a second ago  Up Less than a second              test_container_2
-[ INFO ] 1ee043d0a2ed  docker.io/library/alpine:latest  sleep 3600  Less than a second ago  Up Less than a second              test_container_1
+INFO: ===============================================
+INFO:              Listing current podman processes
+INFO: ===============================================
+INFO: CONTAINER ID  IMAGE                            COMMAND     CREATED                 STATUS                 PORTS       NAMES
+INFO: 1012e9a1e865  docker.io/library/alpine:latest  sleep 3600  Less than a second ago  Up Less than a second              test_container_2
+INFO: 1ee043d0a2ed  docker.io/library/alpine:latest  sleep 3600  Less than a second ago  Up Less than a second              test_container_1
 ....
-[ INFO ] ===============================================
+INFO: ===============================================
 
-[ INFO ] ===============================================
-[ INFO ]              Listing current podman volume
-[ INFO ] ===============================================
-[ INFO ] DRIVER      VOLUME NAME
-[ INFO ] local       my_volume
-[ INFO ] local       test
-[ INFO ] local       super
-[ INFO ] local       dogz
-[ INFO ] local       medogz
-[ INFO ] ===============================================
+INFO: ===============================================
+INFO:              Listing current podman volume
+INFO: ===============================================
+INFO: DRIVER      VOLUME NAME
+INFO: local       my_volume
+INFO: local       test
+INFO: local       super
+INFO: local       dogz
+INFO: local       medogz
+INFO: ===============================================
 
-[ INFO ] ===============================================
-[ INFO ]              Listing current podman network
-[ INFO ] ===============================================
-[ INFO ] NETWORK ID    NAME        DRIVER
-[ INFO ] 2a2543c7b7d9  my_network  bridge
-[ INFO ] 41af11b0f3d5  netcow      bridge
-[ INFO ] 2f259bab93aa  podman      bridge
-[ INFO ] ===============================================
+INFO: ===============================================
+INFO:              Listing current podman network
+INFO: ===============================================
+INFO: NETWORK ID    NAME        DRIVER
+INFO: 2a2543c7b7d9  my_network  bridge
+INFO: 41af11b0f3d5  netcow      bridge
+INFO: 2f259bab93aa  podman      bridge
+INFO: ===============================================
 
-[ PASS ] All tests passed.
+PASS: All tests passed.
 ```
 
 # Building rpm

@@ -134,45 +134,45 @@ fi
 check_required_parameters
 
 if ! cgroup_is_enabled; then
-    echo -e "[ ${RED}FAIL${NC} ] CGROUP is not ENABLED in the system"
+    echo -e "FAIL: CGROUP is not ENABLED in the system"
     exit 255
 fi
 
 if ! cgroup_create_env; then
-    echo -e "[ ${RED}FAIL${NC} ] CGROUP cannot create environment"
+    echo -e "FAIL: CGROUP cannot create environment"
     exit 255
 fi
 
 if ! cgroup_check_controller_availability; then
-    echo -e "[ ${RED}FAIL${NC} ] CGROUP unable to locate required controllers in ${CGROUP_CONTROLLERS_PATH}"
+    echo -e "FAIL: CGROUP unable to locate required controllers in ${CGROUP_CONTROLLERS_PATH}"
     exit 255
 fi
 
 # Debugging output
 if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
     echo
-    echo -e "[ ${BLUE}INFO${NC} ] ======================================================="
-    echo -e "[ ${BLUE}INFO${NC} ] ${GREEN}VERBOSE MODE IS ON${NC}"
-    echo -e "[ ${BLUE}INFO${NC} ] ======================================================="
-    echo -e "[ ${BLUE}INFO${NC} ] env NETWORK_NAME is ${NETWORK_NAME}"
-    echo -e "[ ${BLUE}INFO${NC} ] env VOLUME_NAME is ${VOLUME_NAME}"
-    echo -e "[ ${BLUE}INFO${NC} ] env NUMER_OF_CONTAINERS is ${NUMBER_OF_CONTAINERS}"
-    echo -e "[ ${BLUE}INFO${NC} ] env IMAGE_NAME is ${IMAGE_NAME}"
-    echo -e "[ ${BLUE}INFO${NC} ] env IMAGE_COMMAND is ${IMAGE_COMMAND}"
+    echo -e "INFO: ======================================================="
+    echo -e "INFO: ${GREEN}VERBOSE MODE IS ON${NC}"
+    echo -e "INFO: ======================================================="
+    echo -e "INFO: env NETWORK_NAME is ${NETWORK_NAME}"
+    echo -e "INFO: env VOLUME_NAME is ${VOLUME_NAME}"
+    echo -e "INFO: env NUMER_OF_CONTAINERS is ${NUMBER_OF_CONTAINERS}"
+    echo -e "INFO: env IMAGE_NAME is ${IMAGE_NAME}"
+    echo -e "INFO: env IMAGE_COMMAND is ${IMAGE_COMMAND}"
 
     if [[ "${CLEANUP}" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] env CLEANUP is set"
+        echo -e "INFO: env CLEANUP is set"
     fi
   
     if [[ "$LIST_CURRENT_STATE" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] env LIST_CURRENT_STATE is set"
+        echo -e "INFO: env LIST_CURRENT_STATE is set"
     fi 
     echo
 fi
 
 # List the current state of processes, volumes and networks
 if [[ "$LIST_CURRENT_STATE" = "${FEATURE_ENABLED}" ]]; then
-    echo -e "[ ${BLUE}INFO${NC} ] ${GREEN}Listing current podman env state NO CHANGES FROM SCRIPT${NC}"
+    echo -e "INFO: ${GREEN}Listing current podman env state NO CHANGES FROM SCRIPT${NC}"
     list_current_state
 fi
 
@@ -187,13 +187,13 @@ fi
 
 if [[ "$LIST_CURRENT_STATE" = "${FEATURE_ENABLED}" ]]; then
     echo
-    echo -e "[ ${BLUE}INFO${NC} ] ================================================================================="
-    echo -e "[ ${BLUE}INFO${NC} ] ${GREEN}Requested addon has been added to the environment${NC}"
-    echo -e "[ ${BLUE}INFO${NC} ] ================================================================================="
-    echo -e "[ ${BLUE}INFO${NC} ] - Number of Containers - ${NUMBER_OF_CONTAINERS}" 
-    echo -e "[ ${BLUE}INFO${NC} ] - Network - ${NETWORK_NAME}"
-    echo -e "[ ${BLUE}INFO${NC} ] - Volume  - ${VOLUME_NAME}"
-    echo -e "[ ${BLUE}INFO${NC} ] ================================================================================="
+    echo -e "INFO: ================================================================================="
+    echo -e "INFO: ${GREEN}Requested addon has been added to the environment${NC}"
+    echo -e "INFO: ================================================================================="
+    echo -e "INFO: - Number of Containers - ${NUMBER_OF_CONTAINERS}" 
+    echo -e "INFO: - Network - ${NETWORK_NAME}"
+    echo -e "INFO: - Volume  - ${VOLUME_NAME}"
+    echo -e "INFO: ================================================================================="
     list_current_state
     echo 
 fi
@@ -201,17 +201,17 @@ fi
 # All Done, let's cleanup
 if [[ "${CLEANUP}" = "${FEATURE_ENABLED}" ]]; then
     if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] Removing total number of containers: ${NUMBER_OF_CONTAINERS}..."
+        echo -e "INFO: Removing total number of containers: ${NUMBER_OF_CONTAINERS}..."
     fi
         ./engine-operations --cleanup-cont
 
     if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] Removing network ${NETWORK_NAME}..."
+        echo -e "INFO: Removing network ${NETWORK_NAME}..."
     fi
         ./engine-operations --cleanup-net
 
     if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "[ ${BLUE}INFO${NC} ] Removing volume ${VOLUME_NAME}..."
+        echo -e "INFO: Removing volume ${VOLUME_NAME}..."
     fi
         ./engine-operations --cleanup-vol
         cgroup_remove
@@ -223,5 +223,5 @@ fi
 
 if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
     echo
-    echo -e "[ ${GREEN}PASS${NC} ] All tests passed."
+    echo -e "PASS: All tests passed."
 fi
