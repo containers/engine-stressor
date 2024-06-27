@@ -1,5 +1,5 @@
 # Define the directories for installation
-PREFIX ?= /usr/
+PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin/
 SHAREDIR = $(PREFIX)/share/engine-stressor
 SHAREDIR_DOC = $(PREFIX)/share/doc/engine-stressor
