@@ -54,12 +54,16 @@ create_container() {
 
     # Running Podman containers under a systemd scope integrates them more
     # tightly with the systemd service manager.
-    podman_cmd="podman run -d --replace \
-                  --name ${container_name} \
-                  --volume ${VOLUME_NAME}:${VOLUME_PATH} \
-                  --network ${NETWORK_NAME} \
-                  ${IMAGE_NAME} \
-                  ${IMAGE_COMMAND}"
+    podman_cmd="podman run -d --replace --name ${container_name}"
+    if [ -n "${VOLUME_NAME}" ]; then
+        podman_cmd+=" --volume ${VOLUME_NAME}:${VOLUME_PATH}"
+    fi
+
+    if [ -n "${NETWORK_NAME}" ]; then
+        podman_cmd+=" --network ${NETWORK_NAME}"
+    fi
+
+    podman_cmd+=" ${IMAGE_NAME} ${IMAGE_COMMAND}"
 
     cmd="sudo systemd-run --quiet --scope \
     	      -p Delegate=yes \

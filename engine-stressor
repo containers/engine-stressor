@@ -63,21 +63,19 @@ show_options_from_constant_file() {
 list_current_state() {
     if [[ "$LIST_CURRENT_STATE" = "${FEATURE_ENABLED}" ]]; then
         ./engine-operations --list-procs
-        ./engine-operations --list-vols
-        ./engine-operations --list-nets
+
+        if [ -n "$VOLUME_NAME" ]; then
+            ./engine-operations --list-vols
+        fi
+
+        if [ -n "$NETWORK_NAME" ]; then
+            ./engine-operations --list-nets
+        fi
     fi
 }
 
 check_required_parameters() {
   missing_params=""
-
-  if [[ -z "${NETWORK_NAME}" ]]; then
-    missing_params+="NETWORK_NAME "
-  fi
-
-  if [[ -z "${VOLUME_NAME}" ]]; then
-    missing_params+="VOLUME_NAME "
-  fi
 
   if [[ -z "${IMAGE_NAME}" ]]; then
     missing_params+="IMAGE_NAME "
@@ -154,8 +152,12 @@ if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
     echo -e "INFO: ======================================================="
     echo -e "INFO: ${GREEN}VERBOSE MODE IS ON${NC}"
     echo -e "INFO: ======================================================="
-    echo -e "INFO: env NETWORK_NAME is ${NETWORK_NAME}"
-    echo -e "INFO: env VOLUME_NAME is ${VOLUME_NAME}"
+    if [[ -n "${NETWORK_NAME}" ]]; then
+        echo -e "INFO: env NETWORK_NAME is ${NETWORK_NAME}"
+    fi
+    if [[ -n "${VOLUME_NAME}" ]]; then
+        echo -e "INFO: env VOLUME_NAME is ${VOLUME_NAME}"
+    fi
     echo -e "INFO: env NUMER_OF_CONTAINERS is ${NUMBER_OF_CONTAINERS}"
     echo -e "INFO: env IMAGE_NAME is ${IMAGE_NAME}"
     echo -e "INFO: env IMAGE_COMMAND is ${IMAGE_COMMAND}"
@@ -176,11 +178,15 @@ if [[ "$LIST_CURRENT_STATE" = "${FEATURE_ENABLED}" ]]; then
     list_current_state
 fi
 
-# create volume
-./engine-operations --create-vol
+if [ -n "$VOLUME_NAME" ]; then
+    # create volume
+    ./engine-operations --create-vol
+fi
 
-# create network
-./engine-operations --create-net
+if [ -n "$NETWORK_NAME" ]; then
+    # create network
+    ./engine-operations --create-net
+fi
 
 # create containers
 ./engine-operations --create-cont
@@ -205,16 +211,20 @@ if [[ "${CLEANUP}" = "${FEATURE_ENABLED}" ]]; then
     fi
         ./engine-operations --cleanup-cont
 
-    if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "INFO: Removing network ${NETWORK_NAME}..."
-    fi
+    if [ -n "$NETWORK_NAME" ]; then
+        if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
+            echo -e "INFO: Removing network ${NETWORK_NAME}..."
+        fi
         ./engine-operations --cleanup-net
-
-    if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
-        echo -e "INFO: Removing volume ${VOLUME_NAME}..."
     fi
+
+    if [ -n "$VOLUME_NAME" ]; then
+        if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
+            echo -e "INFO: Removing volume ${VOLUME_NAME}..."
+        fi
         ./engine-operations --cleanup-vol
-        cgroup_remove
+    fi
+    cgroup_remove
 fi
 
 if [[ "$LIST_CURRENT_STATE" = "${FEATURE_ENABLED}" ]]; then
