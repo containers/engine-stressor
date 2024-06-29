@@ -40,14 +40,25 @@ FEATURE_DISABLED=false
 ###############################################################################
 
 ###############################################################################
+# Description:
+# Define packager installer extra flags
+#PACKAGER_INSTALLER_EXTRA_FLAGS=""
+###############################################################################
+
+###############################################################################
+# Description
+# Define Image Name
 #IMAGE_NAME="alpine"
 #IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild"
 #IMAGE_COMMAND="sleep 3600"
+###############################################################################
 
 
+###############################################################################
 # Description
 # Number of containers to trigger. Default 10
 # NUMBER_OF_CONTAINERS=5
+###############################################################################
 
 ###############################################################################
 # Description
@@ -262,6 +273,10 @@ fi
 
 if [ -z "${PACKAGER_INSTALLER+x}" ]; then
     PACKAGER_INSTALLER="dnf"
+fi
+
+if [ -z "${PACKAGER_INSTALLER_EXTRA_FLAGS+x}" ]; then
+    PACKAGER_INSTALLER_EXTRA_FLAGS=""
 fi
 
 if [ -z "${VOLUME_PATH+x}" ]; then

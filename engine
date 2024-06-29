@@ -37,7 +37,7 @@ install_packages() {
         echo -e "INFO: Installing packages in container ${container_name} - packages ${EXTRA_PACKAGES_TO_INSTALL}..."
     fi
 
-    if ! sudo podman exec "${container_name}" "${PACKAGER_INSTALLER}" install -y -q ${EXTRA_PACKAGES_TO_INSTALL}; then
+    if ! sudo podman exec "${container_name}" "${PACKAGER_INSTALLER}" "${PACKAGER_INSTALLER_EXTRA_FLAGS}" install -y -q ${EXTRA_PACKAGES_TO_INSTALL}; then
         if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
             echo -e "FAIL: container ${container_name} fail to install package(s) ${EXTRA_PACKAGES_TO_INSTALL}"
             return 1
