@@ -155,6 +155,10 @@ if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
     if [[ -n "${NETWORK_NAME}" ]]; then
         echo -e "INFO: env NETWORK_NAME is ${NETWORK_NAME}"
     fi
+
+    echo -e "INFO: env PACKAGER_INSTALLER is ${PACKAGER_INSTALLER}"
+    echo -e "INFO: env PACKAGER_INSTALLER_EXTRA_FLAGS is ${PACKAGER_INSTALLER_EXTRA_FLAGS}"
+
     if [[ -n "${VOLUME_NAME}" ]]; then
         echo -e "INFO: env VOLUME_NAME is ${VOLUME_NAME}"
     fi
