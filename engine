@@ -51,10 +51,15 @@ create_container() {
     local container_name=$1
 
     local start_time=$(date +%s%3N) # Log start time in milliseconds
+    local ostree_deployment=""    
 
     # Running Podman containers under a systemd scope integrates them more
     # tightly with the systemd service manager.
-    podman_cmd="podman run -d --replace --name ${container_name}"
+    if stat  /run/ostree-booted > /dev/null 2>&1 || [[ $(uname -r | grep -w -q el[0-9]*iv) -eq 0 ]]; then
+        ostree_deployment="--read-only=false"
+    fi
+
+    podman_cmd="podman run ${ostree_deployment} -d --replace --name ${container_name}"
     if [ -n "${VOLUME_NAME}" ]; then
         podman_cmd+=" --volume ${VOLUME_NAME}:${VOLUME_PATH}"
     fi
