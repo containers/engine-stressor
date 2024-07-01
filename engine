@@ -38,7 +38,15 @@ install_packages() {
     fi
 
     # Define the command as a variable
-    cmd="sudo podman exec \"${container_name}\" \"${PACKAGER_INSTALLER}\" \"${PACKAGER_INSTALLER_EXTRA_FLAGS}\" install -y -q ${EXTRA_PACKAGES_TO_INSTALL}"
+    cmd="sudo podman exec \"${container_name}\" ${PACKAGER_INSTALLER}"
+
+    # Add PACKAGER_INSTALLER_EXTRA_FLAGS if not empty
+    if [ -n "${PACKAGER_INSTALLER_EXTRA_FLAGS}" ]; then
+        cmd+=" ${PACKAGER_INSTALLER_EXTRA_FLAGS}"
+    fi
+
+    # Complete the command
+    cmd+=" install -y -q ${EXTRA_PACKAGES_TO_INSTALL}"
 
     # Echo the command for debugging
     echo "Executing command: $cmd"
