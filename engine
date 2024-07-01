@@ -37,7 +37,14 @@ install_packages() {
         echo -e "INFO: Installing packages in container ${container_name} - packages ${EXTRA_PACKAGES_TO_INSTALL}..."
     fi
 
-    if ! sudo podman exec "${container_name}" "${PACKAGER_INSTALLER}" "${PACKAGER_INSTALLER_EXTRA_FLAGS}" install -y -q ${EXTRA_PACKAGES_TO_INSTALL}; then
+    # Define the command as a variable
+    cmd="sudo podman exec \"${container_name}\" \"${PACKAGER_INSTALLER}\" \"${PACKAGER_INSTALLER_EXTRA_FLAGS}\" install -y -q ${EXTRA_PACKAGES_TO_INSTALL}"
+
+    # Echo the command for debugging
+    echo "Executing command: $cmd"
+
+    # Execute the command
+    if ! eval $cmd; then
         if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
             echo -e "FAIL: container ${container_name} fail to install package(s) ${EXTRA_PACKAGES_TO_INSTALL}"
             return 1
