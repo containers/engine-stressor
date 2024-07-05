@@ -77,7 +77,7 @@ list_current_state() {
 check_required_parameters() {
   missing_params=""
 
-  if [[ -z "${IMAGE_NAME_CONTAINRE}" ]]; then
+  if [[ -z "${IMAGE_NAME_CONTAINER}" ]]; then
     missing_params+="IMAGE_NAME_CONTAINER "
   fi
 
