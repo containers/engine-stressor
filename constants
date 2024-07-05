@@ -312,7 +312,7 @@ if [ -z "${IMAGE_NAME_CONTAINER+x}" ]; then
 fi
 
 if [ -z "${IMAGE_COMMAND+x}" ]; then
-    IMAGE_NAME_CONTAINER="sleep 3600"
+    IMAGE_COMMAND="sleep 3600"
 fi
 
 if [ -z "${LIST_CURRENT_STATE+x}" ]; then
