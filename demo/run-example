@@ -54,7 +54,7 @@ pushd .. 1> /dev/null || exit 1
 	 TIMEOUT_PODMAN_STOP_CONTAINER=5 \
          NETWORK_NAME="${NETNAME}" \
          VOLUME_NAME="${VOLNAME}" \
-         IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+         IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
          IMAGE_COMMAND="sleep 3600" \
          NUMBER_OF_CONTAINERS="$NRM_CONTAINERS" \
          ./engine-stressor

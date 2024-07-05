@@ -6,7 +6,7 @@ $ sudo CLEANUP=true \
        NETWORK_NAME="${NETNAME}" \
        VOLUME_NAME="${VOLNAME}" \
        IMAGE_COMMAND="/sbin/init" \
-       IMAGE_NAME="ubi8/ubi-init" \
+       IMAGE_NAME_CONTAINER="ubi8/ubi-init" \
        NUMBER_OF_CONTAINERS="1" \
        SYSTEMD_TIMEOUTSTOPSEC="INFINITY" \
        ./engine-stressor 
@@ -36,7 +36,7 @@ $ sudo CLEANUP=false \
        NETWORK_NAME="my_network" \
        VOLUME_NAME="my_volume" \
        IMAGE_COMMAND="sleep 3600" \
-       IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+       IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
        NUMBER_OF_CONTAINERS="1" \
        SERVICE_MUST_BE_DISABLED="podman" \
        ./engine-stressor
@@ -66,7 +66,7 @@ PASS: service podman is DISABLED
          NETWORK_NAME="my_network" \
          VOLUME_NAME="my_volume" \
          IMAGE_COMMAND="sleep 3600" \
-         IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+         IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
          NUMBER_OF_CONTAINERS="1" \
          SERVICE_MUST_BE_ENABLED="bluechi-controller,bluechi-agent" \
          ./engine-stressor

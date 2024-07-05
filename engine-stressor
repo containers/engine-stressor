@@ -77,8 +77,8 @@ list_current_state() {
 check_required_parameters() {
   missing_params=""
 
-  if [[ -z "${IMAGE_NAME}" ]]; then
-    missing_params+="IMAGE_NAME "
+  if [[ -z "${IMAGE_NAME_CONTAINRE}" ]]; then
+    missing_params+="IMAGE_NAME_CONTAINER "
   fi
 
   if [[ -z "${NUMBER_OF_CONTAINERS}" ]]; then
@@ -102,7 +102,7 @@ usage() {
   echo "       CLEANUP=true \\"
   echo "       NETWORK_NAME=\"my_network\" \\"
   echo "       VOLUME_NAME=\"my_storage\" \\"
-  echo "       IMAGE_NAME=\"quay.io/centos-sig-automotive/automotive-osbuild\" \\"
+  echo "       IMAGE_NAME_CONTAINER=\"quay.io/centos-sig-automotive/automotive-osbuild\" \\"
   echo "       IMAGE_COMMAND=\"sleep 3600\" \\"
   echo "       NUMBER_OF_CONTAINERS=\"100\" \\"
   echo "       $0"
@@ -163,7 +163,7 @@ if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
         echo -e "INFO: env VOLUME_NAME is ${VOLUME_NAME}"
     fi
     echo -e "INFO: env NUMER_OF_CONTAINERS is ${NUMBER_OF_CONTAINERS}"
-    echo -e "INFO: env IMAGE_NAME is ${IMAGE_NAME}"
+    echo -e "INFO: env IMAGE_NAME_CONTAINER is ${IMAGE_NAME_CONTAINER}"
     echo -e "INFO: env IMAGE_COMMAND is ${IMAGE_COMMAND}"
 
     if [[ "${CLEANUP}" = "${FEATURE_ENABLED}" ]]; then

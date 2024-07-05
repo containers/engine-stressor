@@ -35,7 +35,7 @@ rlJournalStart
             TIMEOUT_PODMAN_STOP_CONTAINER=5 \
             NETWORK_NAME=\"my-network\" \
             VOLUME_NAME=\"my-volume\" \
-            IMAGE_NAME=\"quay.io/centos-sig-automotive/automotive-osbuild\" \
+            IMAGE_NAME_CONTAINER=\"quay.io/centos-sig-automotive/automotive-osbuild\" \
             IMAGE_COMMAND=\"sleep 3600\" \
             NUMBER_OF_CONTAINERS=\"100\" \
             ./engine-stressor"' 0 "Run engine-stressor with the specified environment variables"

@@ -47,7 +47,7 @@ echo -e "INFO:"
          NETWORK_NAME="${NETNAME}" \
          VOLUME_NAME="${VOLNAME}" \
          IMAGE_COMMAND="sleep 3600" \
-         IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+         IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
          NUMBER_OF_CONTAINERS="1" \
 	 SERVICE_MUST_BE_ENABLED="bluechi-controller,bluechi-agent" \
          ./engine-stressor

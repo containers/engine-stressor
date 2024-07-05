@@ -48,8 +48,8 @@ FEATURE_DISABLED=false
 ###############################################################################
 # Description
 # Define Image Name
-#IMAGE_NAME="alpine"
-#IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild"
+#IMAGE_NAME_CONTAINER="alpine"
+#IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild"
 #IMAGE_COMMAND="sleep 3600"
 ###############################################################################
 
@@ -307,12 +307,12 @@ if [ -z "${CGROUP_NAME+x}" ]; then
     CGROUP_NAME="engine_stressor"
 fi
 
-if [ -z "${IMAGE_NAME+x}" ]; then
-    IMAGE_NAME="centos:stream9"
+if [ -z "${IMAGE_NAME_CONTAINER+x}" ]; then
+    IMAGE_NAME_CONTAINER="centos:stream9"
 fi
 
 if [ -z "${IMAGE_COMMAND+x}" ]; then
-    IMAGE_NAME="sleep 3600"
+    IMAGE_NAME_CONTAINER="sleep 3600"
 fi
 
 if [ -z "${LIST_CURRENT_STATE+x}" ]; then

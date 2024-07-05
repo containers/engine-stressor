@@ -128,7 +128,7 @@ Let's start with an example below:
 sudo CLEANUP=true \
      NETWORK_NAME="my_network" \
      VOLUME_NAME="my_volume" \
-     IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+     IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
      IMAGE_COMMAND="sleep 3600" \
      NUMBER_OF_CONTAINERS="200" \
      ./engine-stressor
@@ -152,7 +152,7 @@ sudo CLEANUP=false \
      STRESS_TIME="60s" \
      NETWORK_NAME="my_network" \
      VOLUME_NAME="my_volume" \
-     IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+     IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
      IMAGE_COMMAND="sleep 3600" \
      NUMBER_OF_CONTAINERS="100" \
      ./engine-stressor
@@ -197,7 +197,7 @@ sudo CLEANUP=true \
      LIST_CURRENT_STATE=true \
      NETWORK_NAME="my_network" \
      VOLUME_NAME="my_volume" \
-     IMAGE_NAME="alpine" \
+     IMAGE_NAME_CONTAINER="alpine" \
      IMAGE_COMMAND="sleep 3600" \
      NUMBER_OF_CONTAINERS="100" \
      ./engine-stressor
@@ -210,7 +210,7 @@ See the output for a PASS test (no VERBOSE mode or LIST_CURRENT_STATE):
 sudo CLEANUP=false \
      NETWORK_NAME="my_network" \
      VOLUME_NAME="my_volume" \
-     IMAGE_NAME="alpine" \
+     IMAGE_NAME_CONTAINER="alpine" \
      IMAGE_COMMAND="sleep 3600" \
      NUMBER_OF_CONTAINERS="100" \
      ./engine-stressor
@@ -250,7 +250,7 @@ Output for a FAIL test:
 sudo CLEANUP=false \
      NETWORK_NAME="my_network" \
      VOLUME_NAME="my_volume" \
-     IMAGE_NAME="alpine" \
+     IMAGE_NAME_CONTAINER="alpine" \
      IMAGE_COMMAND="sleep 3600" \
      NUMBER_OF_CONTAINERS="100" \
      ./engine-stressor
@@ -267,7 +267,7 @@ sudo CLEANUP=true \
      LIST_CURRENT_STATE=true \
      NETWORK_NAME="my_network" \
      VOLUME_NAME="my_volume" \
-     IMAGE_NAME="alpine" \
+     IMAGE_NAME_CONTAINER="alpine" \
      IMAGE_COMMAND="sleep 3600" \
      NUMBER_OF_CONTAINERS="3" \
      ./engine-stressor
@@ -278,7 +278,7 @@ INFO: =======================================================
 INFO: NETWORK_NAME is my_network
 INFO: VOLUME_NAME is my_volume
 INFO: NUMBER_OF_CONTAINERS is 100
-INFO: IMAGE_NAME is alpine
+INFO: IMAGE_NAME_CONTAINER is alpine
 INFO: IMAGE_COMMAND is sleep 3600
 INFO: LIST_CURRENT_STATE is set
 

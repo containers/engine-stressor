@@ -83,7 +83,7 @@ create_container() {
         podman_cmd+=" --network ${NETWORK_NAME}"
     fi
 
-    podman_cmd+=" ${IMAGE_NAME} ${IMAGE_COMMAND}"
+    podman_cmd+=" ${IMAGE_NAME_CONTAINER} ${IMAGE_COMMAND}"
 
     cmd="sudo systemd-run --quiet --scope \
     	      -p Delegate=yes \

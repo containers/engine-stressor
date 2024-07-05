@@ -46,7 +46,7 @@ echo -e "INFO: \t - $(rpm_package_version "systemd")"
          NETWORK_NAME="${NETNAME}" \
          VOLUME_NAME="${VOLNAME}" \
          IMAGE_COMMAND="sleep 3600" \
-         IMAGE_NAME="quay.io/centos-sig-automotive/automotive-osbuild" \
+         IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
          NUMBER_OF_CONTAINERS="1" \
          SERVICE_MUST_BE_DISABLED="podman" \
          ./engine-stressor
