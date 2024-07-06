@@ -36,16 +36,22 @@ create_network() {
         echo -e "INFO: creating network ${NETWORK_NAME}"
     fi
 
-    if ! podman network create "${NETWORK_NAME}" 1> /dev/null; then
-        echo -e "FAIL: unable to create network ${NETWORK_NAME}"
-	return 1
-	#exit 255
+    # Check if NETWORK_DNS_INFO is provided and construct the DNS parameters
+    DNS_PARAMS=""
+    if [ -n "$NETWORK_DNS_SERVER" ]; then
+        for DNS in "${NETWORK_DNS_SERVER}"; do
+            DNS_PARAMS+="--dns $DNS "
+        done
     fi
+    if ! podman network create ${DNS_PARAMS} ${NETWORK_NAME} 1> /dev/null; then
+	echo -e "FAIL: unable to create network ${NETWORK_NAME} ${DNS_PARAMS}"
+	return 1
+    fi
+
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
         echo -e "PASS: network ${NETWORK_NAME} created."
     fi
     return 0
-    #exit 0
 }
 
 # Function to remove a network
