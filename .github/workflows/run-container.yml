@@ -50,3 +50,39 @@ jobs:
             IMAGE_COMMAND="sleep 3600" \
             NUMBER_OF_CONTAINERS="100" \
             ./engine-stressor
+
+      - name: Run engine stressor WITH NETWORK + DNS_SERVER + VOLUME
+        run: |
+          sudo TOTAL_MEMORY_FOR_THE_NAMESPACE="1G" \
+            LIST_CURRENT_STATE=true \
+            VERBOSE=true \
+            CLEANUP=false \
+            TIMEOUT_PODMAN_STOP_CONTAINER=5 \
+            NETWORK_NAME="my-network" \
+            NETWORK_DNS_SERVER="8.8.8.8" \
+            VOLUME_NAME="my-volume" \
+            IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
+            IMAGE_COMMAND="sleep 3600" \
+            NUMBER_OF_CONTAINERS="100" \
+            ./engine-stressor
+
+      - name: Run engine stressor WITH NETWORK + DNS_SERVER + VOLUME + STRESS
+        run: |
+          sudo TOTAL_MEMORY_FOR_THE_NAMESPACE="1G" \
+            LIST_CURRENT_STATE=true \
+            VERBOSE=true \
+            STRESS_CPU="6" \
+            STRESS_DISK="8" \
+            STRESS_DISK_SIZE="1G" \
+            STRESS_MEMORY="1G" \
+            STRESS_VM_STRESSOR_INSTANCES=100 \
+            STRESS_TIME="60s" \
+            CLEANUP=false \
+            TIMEOUT_PODMAN_STOP_CONTAINER=5 \
+            NETWORK_NAME="my-network" \
+            NETWORK_DNS_SERVER="8.8.8.8" \
+            VOLUME_NAME="my-volume" \
+            IMAGE_NAME_CONTAINER="quay.io/centos-sig-automotive/automotive-osbuild" \
+            IMAGE_COMMAND="sleep 3600" \
+            NUMBER_OF_CONTAINERS="100" \
+            ./engine-stressor
