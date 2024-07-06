@@ -83,6 +83,15 @@ create_container() {
         podman_cmd+=" --network ${NETWORK_NAME}"
     fi
 
+    # Check if NETWORK_DNS_INFO is provided and construct the DNS parameters
+    if [ -n "$NETWORK_DNS_SERVER" ]; then
+        DNS_PARAMS=""
+        for DNS in "${NETWORK_DNS_SERVER}"; do
+            DNS_PARAMS+="--dns=$DNS "
+        done
+        podman_cmd+=" ${DNS_PARAMS}"
+    fi
+
     podman_cmd+=" ${IMAGE_NAME_CONTAINER} ${IMAGE_COMMAND}"
 
     cmd="sudo systemd-run --quiet --scope \

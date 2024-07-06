@@ -36,15 +36,8 @@ create_network() {
         echo -e "INFO: creating network ${NETWORK_NAME}"
     fi
 
-    # Check if NETWORK_DNS_INFO is provided and construct the DNS parameters
-    DNS_PARAMS=""
-    if [ -n "$NETWORK_DNS_SERVER" ]; then
-        for DNS in "${NETWORK_DNS_SERVER}"; do
-            DNS_PARAMS+="--dns $DNS "
-        done
-    fi
-    if ! podman network create ${DNS_PARAMS} ${NETWORK_NAME} 1> /dev/null; then
-	echo -e "FAIL: unable to create network ${NETWORK_NAME} ${DNS_PARAMS}"
+    if ! podman network create ${NETWORK_NAME} 1> /dev/null; then
+	echo -e "FAIL: unable to create network ${NETWORK_NAME}"
 	return 1
     fi
 
