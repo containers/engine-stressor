@@ -48,13 +48,13 @@ install:
 	@if ! grep -q '^SHARE_DIR=$(SHAREDIR)' $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); then \
                 echo 'SHARE_DIR=$(SHAREDIR)' >> $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); \
         fi
-	if [ -f /etc/os-release ]; then \
+	@if [ -f /etc/os-release ]; then \
 		. /etc/os-release; \
 		if [ "$$ID" = "fedora" ] || [ "$$ID" = "centos" ]; then \
 			if ! rpm -q aardvark-dns >/dev/null 2>&1; then \
 				sudo dnf install -y aardvark-dns; \
-			fi
-		fi
+			fi \
+		fi \
 	fi
 	@echo "Installation complete."
 
