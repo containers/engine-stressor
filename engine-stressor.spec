@@ -26,6 +26,7 @@ BuildArch: noarch
 Requires: podman
 Requires: sudo
 Requires: stress-ng
+Requires: aardvark-dns
 
 # Requirements for cgroupv2 ?
 BuildRequires:  systemd
