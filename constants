@@ -351,7 +351,3 @@ fi
 if [ -z "${SERVICE_MUST_BE_DISABLED+x}" ]; then
     SERVICE_MUST_BE_DISABLED=""
 fi
-
-if [ -z "${NETWORK_DNS_SERVER+x}" ]; then
-    NETWORK_DNS_SERVER="8.8.8.8"
-fi
