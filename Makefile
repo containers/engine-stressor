@@ -27,12 +27,14 @@ DOCS = README.md LICENSE SECURITY.md NOTICE
 
 CONFIG_FILE = constants
 
+DNF_OR_YUM:=$(shell which dnf || which yum)
+
 # Default target
 all:
 	@echo "Available targets: install, uninstall"
 
 # Install target
-install:
+install: installdeps
 	@install -d $(DESTDIR)$(SHAREDIR)
 	@install -d $(DESTDIR)$(SHAREDIR_DOC)
 	@install -d $(DESTDIR)$(BINDIR)
@@ -48,10 +50,11 @@ install:
 	@if ! grep -q '^SHARE_DIR=$(SHAREDIR)' $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); then \
                 echo 'SHARE_DIR=$(SHAREDIR)' >> $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); \
         fi
-	@if ! rpm -q aardvark-dns >/dev/null 2>&1; then \
-		dnf install aardvark-dns; \
-	fi
 	@echo "Installation complete."
+
+installdeps:
+	@if test -x "$(DNF_OR_YUM)"; then $(DNF_OR_YUM) -y install aardvark-dns; fi
+
 
 # Uninstall target
 uninstall:
