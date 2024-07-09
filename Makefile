@@ -54,8 +54,7 @@ install: installdeps
 	@echo "Installation complete."
 
 installdeps:
-	@if test -x "$(DNF_OR_YUM)"; then $(DNF_OR_YUM) -y install aardvark-dns; fi
-
+	@if test -x "$(DNF_OR_YUM)"; then rpm -q aardvark-dns > /dev/null 2>&1 || $(DNF_OR_YUM) -y install aardvark-dns; fi
 
 # Uninstall target
 uninstall:
