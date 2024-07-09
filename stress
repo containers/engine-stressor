@@ -66,6 +66,9 @@ build_stress_ng_cmd() {
 }
 
 run_stress_cmd() {
+    local error_messages=()
+    local error_occurred=0
+
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
         echo -e "INFO: Running stress-ng in container ${container_name}..."
     fi
@@ -83,11 +86,22 @@ run_stress_cmd() {
             if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
                 echo -e "FAIL: Failed to run stress-ng in container ${container_name}"
             fi
-            exit 1  # Exit the subshell with an error
+            error_messages+=("FAIL: Failed to run stress-ng in container ${container_name}")
+            error_occurred=1
         fi
       } &
     done
 
     # Wait for all parallel processes to complete
     wait
+
+    # Check if there was an error
+    if [[ $error_occurred -eq 1 ]]; then
+        for error_message in "${error_messages[@]}"; do
+            echo -e "$error_message"
+        done
+        return 1
+    fi
+
+    return 0
 }
