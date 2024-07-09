@@ -85,7 +85,7 @@ LIST_CURRENT_STATE="${FEATURE_DISABLED}"
 ###############################################################################
 # Description
 # Controls how many containers are started/stopped in each batch.
-BATCH_SIZE=10
+BATCH_SIZE=16
 ###############################################################################
 
 ###############################################################################
@@ -333,7 +333,7 @@ if [ -z "${LIST_CURRENT_STATE+x}" ]; then
 fi
 
 if [ -z "${BATCH_SIZE+x}" ]; then
-    BATCH_SIZE=10
+    BATCH_SIZE=16
 fi
 
 if [ -z "${NUMBER_OF_CONTAINERS+x}" ]; then
