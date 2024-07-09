@@ -19,6 +19,7 @@ SCRIPTS = cgroup \
 	date \
 	rpm \
 	common \
+	monitor \
 	selinux
 
 BIN_FILE = engine-stressor

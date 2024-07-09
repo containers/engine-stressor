@@ -1,0 +1,59 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+CONFIG_DIR="$HOME/.config/engine-stressor"
+CONSTANTS_FILE="$CONFIG_DIR/constants"
+
+if [ ! -f "$CONSTANTS_FILE" ]; then
+  echo "Error: File $CONSTANTS_FILE does not exist."
+  exit 1
+fi
+
+source "$CONSTANTS_FILE"
+source "$SHARE_DIR/common"
+
+# Function to monitor system performance using vmstat
+monitor_system() {
+    echo "Monitoring system performance..."
+    vmstat 1 5 > vmstat.log
+
+    # Calculate average values
+    avg_free=$(awk 'NR>2 { sum += $4 } END { printf "%.0f", sum/(NR-2) }' vmstat.log)
+    avg_si=$(awk 'NR>2 { sum += $7 } END { print sum/(NR-2) }' vmstat.log)
+    avg_so=$(awk 'NR>2 { sum += $8 } END { print sum/(NR-2) }' vmstat.log)
+    avg_bi=$(awk 'NR>2 { sum += $9 } END { print sum/(NR-2) }' vmstat.log)
+    avg_bo=$(awk 'NR>2 { sum += $10 } END { print sum/(NR-2) }' vmstat.log)
+    avg_wa=$(awk 'NR>2 { sum += $16 } END { print sum/(NR-2) }' vmstat.log)
+
+    echo "Average Free Memory: $avg_free KB"
+    echo "Average Swap In: $avg_si KB/s"
+    echo "Average Swap Out: $avg_so KB/s"
+    echo "Average Blocks In: $avg_bi blocks/s"
+    echo "Average Blocks Out: $avg_bo blocks/s"
+    echo "Average IO Wait: $avg_wa%"
+
+    # Determine if the system is under pressure
+    if (( $(echo "$avg_free < 50000" | bc -l) )) || (( $(echo "$avg_si > 0" | bc -l) )) || (( $(echo "$avg_so > 0" | bc -l) )); then
+        echo "System is under memory pressure."
+    else
+        echo "Memory usage is within acceptable limits."
+    fi
+
+    if (( $(echo "$avg_bi > 1000" | bc -l) )) || (( $(echo "$avg_bo > 1000" | bc -l) )) || (( $(echo "$avg_wa > 20" | bc -l) )); then
+        echo "System is under disk pressure."
+    else
+        echo "Disk usage is within acceptable limits."
+    fi
+}

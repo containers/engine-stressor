@@ -63,6 +63,7 @@ are memory, CPU or others interferences in the system.
 %{_datadir}/engine-stressor/engine-operations
 %{_datadir}/engine-stressor/processes
 %{_datadir}/engine-stressor/network
+%{_datadir}/engine-stressor/monitor
 %{_datadir}/engine-stressor/volume
 %{_datadir}/engine-stressor/systemd
 %{_datadir}/engine-stressor/system
