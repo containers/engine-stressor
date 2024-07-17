@@ -254,7 +254,6 @@ main() {
             local end_time=$(date +%s)
             local elapsed_time=$((end_time - start_time))
             if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-                echo -e "PASS: Total number of containers created in parallel: $NUMBER_OF_CONTAINERS"
                 echo -e "PASS: Time taken for only $msg: $elapsed_time seconds."
 	    fi
             ;;

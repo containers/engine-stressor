@@ -237,5 +237,5 @@ fi
 
 if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
     echo
-    echo -e "PASS: All tests passed."
+    echo -e "PASS: Total number of containers created in parallel: $NUMBER_OF_CONTAINERS"
 fi
