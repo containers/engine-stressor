@@ -251,11 +251,6 @@ main() {
                 fi
             fi
 
-            local end_time=$(date +%s)
-            local elapsed_time=$((end_time - start_time))
-            if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
-                echo -e "PASS: Time taken for only $msg: $elapsed_time seconds."
-	    fi
             ;;
         remove)
             cleanup_containers_in_parallel
