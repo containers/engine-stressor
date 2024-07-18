@@ -237,5 +237,5 @@ fi
 
 if [[ "${VERBOSE}" = "${FEATURE_ENABLED}" ]]; then
     echo
-    echo -e "PASS: Total number of containers created in parallel: $NUMBER_OF_CONTAINERS"
+    echo -e "PASS: A total of ${NUMBER_OF_CONTAINERS} containers were created. The batch size for parallel container creation is ${BATCH_SIZE}."
 fi
