@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2034
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,36 +24,214 @@ fi
 source "$CONSTANTS_FILE"
 source "$SHARE_DIR/common"
 
-# Function to monitor system performance using vmstat
-monitor_system() {
-    echo "Monitoring system performance..."
-    vmstat 1 5 > vmstat.log
+system_baseline() {
+    local baseline_time=$1
+    VMSTAT_INTERVAL=1 # Interval in seconds for vmstat sampling
+    VMSTAT_COUNT=5    # Number of samples vmstat should take
 
-    # Calculate average values
-    avg_free=$(awk 'NR>2 { sum += $4 } END { printf "%.0f", sum/(NR-2) }' vmstat.log)
-    avg_si=$(awk 'NR>2 { sum += $7 } END { print sum/(NR-2) }' vmstat.log)
-    avg_so=$(awk 'NR>2 { sum += $8 } END { print sum/(NR-2) }' vmstat.log)
-    avg_bi=$(awk 'NR>2 { sum += $9 } END { print sum/(NR-2) }' vmstat.log)
-    avg_bo=$(awk 'NR>2 { sum += $10 } END { print sum/(NR-2) }' vmstat.log)
-    avg_wa=$(awk 'NR>2 { sum += $16 } END { print sum/(NR-2) }' vmstat.log)
+    echo "Establishing baseline metrics over $baseline_time seconds..."
 
-    echo "Average Free Memory: $avg_free KB"
-    echo "Average Swap In: $avg_si KB/s"
-    echo "Average Swap Out: $avg_so KB/s"
-    echo "Average Blocks In: $avg_bi blocks/s"
-    echo "Average Blocks Out: $avg_bo blocks/s"
-    echo "Average IO Wait: $avg_wa%"
+    # Initialize baseline sums
+    local sum_free=0
+    local sum_si=0
+    local sum_so=0
+    local sum_bi=0
+    local sum_bo=0
+    local sum_wa=0
+    local count=0
 
-    # Determine if the system is under pressure
-    if (( $(echo "$avg_free < 50000" | bc -l) )) || (( $(echo "$avg_si > 0" | bc -l) )) || (( $(echo "$avg_so > 0" | bc -l) )); then
-        echo "System is under memory pressure."
+    # Collect baseline metrics
+    end_time=$((SECONDS + baseline_time))
+    while [ $SECONDS -lt $end_time ]; do
+        vmstat $VMSTAT_INTERVAL $VMSTAT_COUNT > vmstat.log
+
+        # Ensure vmstat.log is not empty and process the data
+        if [ -s vmstat.log ]; then
+            sum_free=$((sum_free + $(awk 'NR>2 { sum += $4 } END { print (sum ? sum : 0) }' vmstat.log)))
+            sum_si=$((sum_si + $(awk 'NR>2 { sum += $7 } END { print (sum ? sum : 0) }' vmstat.log)))
+            sum_so=$((sum_so + $(awk 'NR>2 { sum += $8 } END { print (sum ? sum : 0) }' vmstat.log)))
+            sum_bi=$((sum_bi + $(awk 'NR>2 { sum += $9 } END { print (sum ? sum : 0) }' vmstat.log)))
+            sum_bo=$((sum_bo + $(awk 'NR>2 { sum += $10 } END { print (sum ? sum : 0) }' vmstat.log)))
+            sum_wa=$((sum_wa + $(awk 'NR>2 { sum += $16 } END { print (sum ? sum : 0) }' vmstat.log)))
+            count=$((count + $(awk 'NR>2 { count += 1 } END { print (count ? count : 0) }' vmstat.log)))
+        fi
+
+        sleep $VMSTAT_INTERVAL
+    done
+
+    # Calculate average baseline values
+    if [ $count -gt 0 ]; then
+        avg_free=$((sum_free / count))
+        avg_si=$((sum_si / count))
+        avg_so=$((sum_so / count))
+        avg_bi=$((sum_bi / count))
+        avg_bo=$((sum_bo / count))
+        avg_wa=$((sum_wa / count))
     else
-        echo "Memory usage is within acceptable limits."
+        echo "No valid data collected during baseline period."
+        exit 1
     fi
 
-    if (( $(echo "$avg_bi > 1000" | bc -l) )) || (( $(echo "$avg_bo > 1000" | bc -l) )) || (( $(echo "$avg_wa > 20" | bc -l) )); then
-        echo "System is under disk pressure."
-    else
-        echo "Disk usage is within acceptable limits."
-    fi
+    echo "Baseline established:"
+    echo "=============================="
+    echo "Average Free Memory:  $avg_free KB"
+    echo "Average Swap In:      $avg_si KB/s"
+    echo "Average Swap Out:     $avg_so KB/s"
+    echo "Average Blocks In:    $avg_bi blocks/s"
+    echo "Average Blocks Out:   $avg_bo blocks/s"
+    echo "Average IO Wait:      $avg_wa%"
+    echo "=============================="
+
+    # Set dynamic thresholds as percentage deviations from baseline
+    MEMORY_PRESSURE_THRESHOLD=$((avg_free / 2))  # Example: 50% of baseline free memory
+    SWAP_IN_THRESHOLD=$((avg_si * 2))           # Example: 200% of baseline swap in
+    SWAP_OUT_THRESHOLD=$((avg_so * 2))          # Example: 200% of baseline swap out
+    BLOCKS_IN_THRESHOLD=$((avg_bi * 2))         # Example: 200% of baseline blocks in
+    BLOCKS_OUT_THRESHOLD=$((avg_bo * 2))        # Example: 200% of baseline blocks out
+    IO_WAIT_THRESHOLD=$((avg_wa * 2))           # Example: 200% of baseline IO wait
+
+    echo "Dynamic thresholds set:"
+    echo "=============================="
+    echo "Free Memory Threshold: $MEMORY_PRESSURE_THRESHOLD KB"
+    echo "Swap In Threshold:     $SWAP_IN_THRESHOLD KB/s"
+    echo "Swap Out Threshold:    $SWAP_OUT_THRESHOLD KB/s"
+    echo "Blocks In Threshold:   $BLOCKS_IN_THRESHOLD blocks/s"
+    echo "Blocks Out Threshold:  $BLOCKS_OUT_THRESHOLD blocks/s"
+    echo "IO Wait Threshold:     $IO_WAIT_THRESHOLD%"
+    echo "=============================="
+}
+
+system_ongoing() {
+    local interval=$1
+    local stress_pids=("${@:2}")
+
+    # Function to check if any stress-ng process is still running
+    is_stress_ng_running() {
+        for pid in "${stress_pids[@]}"; do
+            if ps -p "$pid" > /dev/null 2>&1; then
+                return 0
+            fi
+        done
+        return 1
+    }
+
+    echo "Monitoring system performance every $interval seconds..."
+
+    local memory_pressure_detected=0
+    local disk_pressure_detected=0
+
+    while is_stress_ng_running; do
+        vmstat $VMSTAT_INTERVAL $VMSTAT_COUNT > vmstat.log
+
+        # Calculate average values from vmstat output
+        avg_free=$(awk 'NR>2 { sum += $4 } END { if(NR>2) printf "%.0f", sum/(NR-2) }' vmstat.log)
+        avg_si=$(awk 'NR>2 { sum += $7 } END { if(NR>2) printf "%.0f", sum/(NR-2) }' vmstat.log)
+        avg_so=$(awk 'NR>2 { sum += $8 } END { if(NR>2) printf "%.0f", sum/(NR-2) }' vmstat.log)
+        avg_bi=$(awk 'NR>2 { sum += $9 } END { if(NR>2) printf "%.0f", sum/(NR-2) }' vmstat.log)
+        avg_bo=$(awk 'NR>2 { sum += $10 } END { if(NR>2) printf "%.0f", sum/(NR-2) }' vmstat.log)
+        avg_wa=$(awk 'NR>2 { sum += $16 } END { if(NR>2) printf "%.0f", sum/(NR-2) }' vmstat.log)
+
+        # Determine system state description
+        local system_state=""
+        local show_metrics=0
+        if (( avg_free < MEMORY_PRESSURE_THRESHOLD )); then
+            system_state="=== MEMORY PRESSURE DETECTED ==="
+            show_metrics=1
+        elif (( avg_si > SWAP_IN_THRESHOLD )) || (( avg_so > SWAP_OUT_THRESHOLD )); then
+            system_state="=== MEMORY PRESSURE DETECTED ==="
+            show_metrics=1
+        elif (( avg_bi > BLOCKS_IN_THRESHOLD )) || (( avg_bo > BLOCKS_OUT_THRESHOLD )) || (( avg_wa > IO_WAIT_THRESHOLD )); then
+            system_state="=== DISK PRESSURE DETECTED ==="
+            show_metrics=1
+        fi
+
+        if (( show_metrics )); then
+            # Print average values to the console with timestamp and system state
+            echo "=============================="
+            echo "System Performance Metrics"
+            echo "This output includes a brief note about the current state of the system."
+            echo "$(date)"
+            echo "$system_state"
+            echo "Average Free Memory:  $(tput bold)$avg_free KB$(tput sgr0)"
+            echo "Average Swap In:      $(tput bold)$avg_si KB/s$(tput sgr0)"
+            echo "Average Swap Out:     $(tput bold)$avg_so KB/s$(tput sgr0)"
+            echo "Average Blocks In:    $(tput bold)$avg_bi blocks/s$(tput sgr0)"
+            echo "Average Blocks Out:   $(tput bold)$avg_bo blocks/s$(tput sgr0)"
+            echo "Average IO Wait:      $(tput bold)$avg_wa%$(tput sgr0)"
+            echo "=============================="
+        else
+            echo "==================================================="
+            echo "$(date): === SYSTEM NORMAL: No memory or disk pressure detected ==="
+            echo "==================================================="
+        fi
+
+        local memory_pressure=0
+        local disk_pressure=0
+
+        # Check if the system is under memory pressure
+        if (( avg_free < MEMORY_PRESSURE_THRESHOLD )); then
+            memory_pressure=1
+        fi
+
+        if (( avg_si > SWAP_IN_THRESHOLD )); then
+            memory_pressure=1
+        fi
+
+        if (( avg_so > SWAP_OUT_THRESHOLD )); then
+            memory_pressure=1
+        fi
+
+        # Check if the system is under disk pressure
+        if (( avg_bi > BLOCKS_IN_THRESHOLD )); then
+            disk_pressure=1
+        fi
+
+        if (( avg_bo > BLOCKS_OUT_THRESHOLD )); then
+            disk_pressure=1
+        fi
+
+        if (( avg_wa > IO_WAIT_THRESHOLD )); then
+            disk_pressure=1
+        fi
+
+        # Print pressure detected messages
+        if [ $memory_pressure -eq 1 ] && [ $memory_pressure_detected -eq 0 ]; then
+            echo "==================================================="
+            echo "$(date): === MEMORY PRESSURE DETECTED ==="
+            echo "==================================================="
+            memory_pressure_detected=1
+        fi
+
+        if [ $memory_pressure -eq 0 ] && [ $memory_pressure_detected -eq 1 ]; then
+            echo "==================================================="
+            echo "$(date): === SYSTEM RECOVERY: Memory pressure resolved ==="
+            echo "==================================================="
+            memory_pressure_detected=0
+        fi
+
+        if [ $disk_pressure -eq 1 ] && [ $disk_pressure_detected -eq 0 ]; then
+            echo "================================================"
+            echo "$(date): === DISK PRESSURE DETECTED ==="
+            echo "================================================"
+            disk_pressure_detected=1
+        fi
+
+        if [ $disk_pressure -eq 0 ] && [ $disk_pressure_detected -eq 1 ]; then
+            echo "================================================"
+            echo "$(date): === SYSTEM RECOVERY: Disk pressure resolved ==="
+            echo "================================================"
+            disk_pressure detected=0
+        fi
+
+        if ! is_stress_ng_running; then
+            echo "Monitoring process terminating because all stress-ng processes have exited."
+            exit 0
+        fi
+
+        # Wait for the specified interval before the next iteration
+        sleep $interval
+    done
+
+    echo "Monitoring process terminating because all stress-ng processes have exited."
+    exit 0
 }

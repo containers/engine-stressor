@@ -27,6 +27,7 @@ source "$SHARE_DIR/common"
 source "$SHARE_DIR/stress"
 source "$SHARE_DIR/systemd"
 source "$SHARE_DIR/selinux"
+source "$SHARE_DIR/monitor"
 
 # Install extra packages in the container
 # Argument: container name
@@ -240,6 +241,9 @@ main() {
 	        selinux_check_status "${container_name}"
             fi
 
+	    # Call system_baseline before running the stress test
+            system_baseline 60
+
 	    # If users requested to stress the containers, it's time to stress
 	    # all containers via stress-ng
 	    if [ "$STRESS_NG_SET_TO_RUN" = true ]; then
@@ -250,6 +254,10 @@ main() {
                     exit 1
                 fi
             fi
+
+            # Run monitor with stress-ng pids
+            stress_pids=$(pgrep stress-ng)
+            system_ongoing 5 ${stress_pids[@]}
 
             ;;
         remove)
