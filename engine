@@ -276,7 +276,6 @@ main() {
 
             # Run monitor with stress-ng pids
             stress_pids=$(pgrep stress-ng)
-            system_ongoing 5 ${stress_pids[@]}
             MONITOR_INTERVAL_SEC=5
             system_ongoing ${MONITOR_INTERVAL_SEC} ${stress_pids[@]}
 
