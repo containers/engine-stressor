@@ -1,0 +1,5 @@
+# Function to get CPU information
+get_cpu_info() {
+    TOTAL_CPU=$(lscpu | awk '/^CPU\(s\):/ {print $2}')
+    echo "Total CPUs: $TOTAL_CPU"
+}

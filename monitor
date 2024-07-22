@@ -102,7 +102,8 @@ system_baseline() {
 }
 
 system_ongoing() {
-    local interval=$1
+    # Default interval is 5 seconds if not provided
+    local interval=${1:-5}
     local stress_pids=("${@:2}")
 
     # Function to check if any stress-ng process is still running
@@ -220,11 +221,11 @@ system_ongoing() {
             echo "================================================"
             echo "$(date): === SYSTEM RECOVERY: Disk pressure resolved ==="
             echo "================================================"
-            disk_pressure detected=0
+            disk_pressure_detected=0
         fi
 
         if ! is_stress_ng_running; then
-            echo "Monitoring process terminating because all stress-ng processes have exited."
+            echo "Monitoring process terminating because all stress tests ended and system recovered."
             exit 0
         fi
 

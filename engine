@@ -255,9 +255,30 @@ main() {
                 fi
             fi
 
+	    # Find the process IDs (PIDs) of running stress-ng processes,
+	    # remove duplicates, and store the output in the stress_pids
+	    # variable
+	    stress_pids=$(pgrep stress-ng | uniq | while read pid; do
+	    # Extract the second argument of the stress-ng command to
+	    # determine the stressor type
+	    stress_type=$(ps -p $pid -o args= | awk '{print $2}')
+
+	    # If no specific stressor type is found, output the PID with
+	    # 'stress-ng'
+	    if [ -z "$stress_type" ]; then
+	      echo "$pid stress-ng"
+	    else
+	      # Otherwise, append the stressor type to 'stress-ng' and
+	      # output it with the PID
+	      echo "$pid stress-ng-$stress_type"
+	    fi
+	    done)
+
             # Run monitor with stress-ng pids
             stress_pids=$(pgrep stress-ng)
             system_ongoing 5 ${stress_pids[@]}
+            MONITOR_INTERVAL_SEC=5
+            system_ongoing ${MONITOR_INTERVAL_SEC} ${stress_pids[@]}
 
             ;;
         remove)
