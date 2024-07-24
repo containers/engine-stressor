@@ -241,12 +241,12 @@ main() {
 	        selinux_check_status "${container_name}"
             fi
 
-	    # Call system_baseline before running the stress test
-            system_baseline 60
-
 	    # If users requested to stress the containers, it's time to stress
 	    # all containers via stress-ng
 	    if [ "$STRESS_NG_SET_TO_RUN" = true ]; then
+                # Call system_baseline before running the stress test
+                system_baseline 60
+
                 msg+=" and stressing it"
                 run_stress_cmd
                 if [ $? -ne 0 ]; then
