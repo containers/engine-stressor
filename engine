@@ -23,6 +23,7 @@ fi
 
 source "$CONSTANTS_FILE"
 source "$SHARE_DIR/cgroup"
+source "$SHARE_DIR/disk-exhaustion"
 source "$SHARE_DIR/common"
 source "$SHARE_DIR/stress"
 source "$SHARE_DIR/systemd"
@@ -221,7 +222,13 @@ main() {
 
 	    # Checking if we need to install stress-ng in the containers
 	    is_stress_ng_set_to_run
-	    execute_action_in_containers_in_parallel "create_container"
+
+	    if [ -n "${DISK_EXHAUSTION}" ]; then
+	        disk_exhaustion_test "disk_exhaustion_test"
+            else
+		# No specific test, just creation of containers
+	        execute_action_in_containers_in_parallel "create_container"
+	    fi
 
 	    # user requested to check if service is enabled
 	    if [ -n "${SERVICE_MUST_BE_ENABLED}" ]; then

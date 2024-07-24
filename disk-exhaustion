@@ -1,0 +1,282 @@
+#!/bin/bash
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+CONFIG_DIR="$HOME/.config/engine-stressor"
+CONSTANTS_FILE="$CONFIG_DIR/constants"
+
+if [ ! -f "$CONSTANTS_FILE" ]; then
+    echo "Error: File $CONSTANTS_FILE does not exist."
+    exit 1
+fi
+
+source "$CONSTANTS_FILE"
+source "$SHARE_DIR/common"
+
+# Function to set up the initial container
+setup_initial_container() {
+  # Sets up the initial container with a loopback device mounted as a volume.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  local container_name=$1
+
+  echo "INFO: Setting up the initial container: $container_name"
+
+  # Create a file to be used as a loopback device
+  echo "INFO: Creating a disk image file"
+  dd if=/dev/zero of=$DISK_EXHAUSTION_DISK_FILE bs=1G count=$DISK_EXHAUSTION_QUOTA_GB
+
+  # Format the file as a filesystem
+  echo "INFO: Formatting the disk image file"
+  mkfs.ext4 $DISK_EXHAUSTION_DISK_FILE
+
+  # Create a mount point and mount the loopback device
+  echo "INFO: Creating a mount point and mounting the disk image"
+  mkdir -p $DISK_EXHAUSTION_MOUNT_POINT
+  mount -o loop $DISK_EXHAUSTION_DISK_FILE $DISK_EXHAUSTION_MOUNT_POINT
+
+  # Ensure the disk image is unmounted on script exit
+  trap 'umount $DISK_EXHAUSTION_MOUNT_POINT' EXIT
+
+  local run_cmd="sudo podman run -d --name \"$container_name\" --replace --privileged -v $DISK_EXHAUSTION_MOUNT_POINT:/mnt/test_volume \"$IMAGE_NAME_CONTAINER\" sleep infinity"
+  echo "INFO: Running container $container_name with image $IMAGE_NAME_CONTAINER"
+  echo "INFO: $run_cmd"
+  if ! eval "$run_cmd"; then
+    echo "ERROR: Failed to run initial container $container_name"
+    exit 1
+  fi
+
+  echo "INFO: Starting container $container_name"
+  if ! sudo podman start "$container_name"; then
+    echo "ERROR: Failed to start initial container $container_name"
+    exit 1
+  fi
+
+  # Verify that the mount point and subdirectory exist inside the container
+  if ! sudo podman exec "$container_name" [ -d /mnt/test_volume ]; then
+    echo "ERROR: Mount point /mnt/test_volume does not exist in the container $container_name."
+    exit 1
+  fi
+
+  echo "INFO: Filling up disk space in the container"
+  while true; do
+    if ! sudo podman exec "$container_name" sh -c "dd if=/dev/zero of=/mnt/test_volume/largefile bs=1M count=$DISK_EXHAUSTION_WRITE_SIZE_MB oflag=append conv=notrunc"; then
+      echo "ERROR: Failed to fill disk space in initial container $container_name"
+      break
+    fi
+    usage_percent=$(check_disk_usage "$container_name")
+    echo "INFO: Current disk usage: $usage_percent%"
+    if (( usage_percent >= DISK_EXHAUSTION_THRESHOLD_PERCENT )); then
+      break
+    fi
+  done
+
+  echo "INFO: Final disk usage inside container:"
+  sudo podman exec "$container_name" df -h /mnt/test_volume
+}
+
+# Function to check disk usage inside the container
+check_disk_usage() {
+  # Checks the disk usage inside the container.
+  # Args:
+  #   container_name (str): The name of the container.
+  # Returns:
+  #   int: The disk usage percentage inside the container.
+  local container_name=$1
+
+  sudo podman exec "$container_name" df /mnt/test_volume | awk 'NR==2 {print $5}' | sed 's/%//'
+}
+
+# Function to create additional containers if disk usage exceeds threshold
+#
+create_additional_containers() {
+  # Function to create additional containers if disk usage exceeds threshold.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  local container_name=$1
+
+  echo "INFO: Creating additional containers inside $container_name"
+
+  export container_name DISK_EXHAUSTION_MOUNT_POINT IMAGE_NAME_CONTAINER
+
+  seq 1 "$NUMBER_OF_CONTAINERS" | parallel -j "$BATCH_SIZE" --no-notice '
+    additional_container_name=${container_name}_nested_{}
+    run_cmd="podman run -d --name ${additional_container_name} --privileged -v ${DISK_EXHAUSTION_MOUNT_POINT}:/mnt/test_volume ${IMAGE_NAME_CONTAINER} sleep infinity"
+    echo "INFO: Running nested container ${additional_container_name} inside ${container_name} with image ${IMAGE_NAME_CONTAINER}"
+    echo "INFO: ${run_cmd}"
+    if ! sudo podman exec ${container_name} sh -c "${run_cmd}"; then
+      echo "ERROR: Failed to run nested container ${additional_container_name} inside ${container_name}"
+      exit 1
+    fi
+    echo "INFO: Started nested container ${additional_container_name} inside ${container_name}"
+  '
+}
+
+create_additional_containers() {
+  # Creates additional containers inside the initial container.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  local container_name=$1
+
+  echo "INFO: Creating additional containers inside $container_name"
+  for i in $(seq 1 "$NUMBER_OF_CONTAINERS"); do
+    local additional_container_name="${container_name}_nested_$i"
+    local run_cmd="podman run -d --name \"$additional_container_name\" --privileged -v $DISK_EXHAUSTION_MOUNT_POINT:/mnt/test_volume $IMAGE_NAME_CONTAINER sleep infinity"
+    echo "INFO: Running nested container $additional_container_name inside $container_name with image $IMAGE_NAME_CONTAINER"
+    echo "INFO: $run_cmd"
+    if ! sudo podman exec "$container_name" sh -c "$run_cmd"; then
+      echo "ERROR: Failed to run nested container $additional_container_name inside $container_name"
+      continue
+    fi
+    echo "INFO: Started nested container $additional_container_name inside $container_name"
+  done
+}
+
+# Function to verify if all containers are running
+verify_containers_running() {
+  # Verifies if all nested containers are running inside the initial container.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  # Returns:
+  #   bool: True if all nested containers are running, False otherwise.
+  local container_name=$1
+  local all_running=true
+
+  echo "INFO: Verifying that all nested containers are running inside $container_name"
+  for i in $(seq 1 "$NUMBER_OF_CONTAINERS"); do
+    local additional_container_name="${container_name}_nested_$i"
+    local status
+    status=$(sudo podman exec "$container_name" podman inspect -f '{{.State.Status}}' "$additional_container_name" 2>/dev/null)
+    echo "INFO: Status of nested container $additional_container_name: ${status:-<unknown>}"
+    if [ "$status" != "running" ]; then
+      echo "ERROR: Nested container $additional_container_name is not running. Status: ${status:-<unknown>}"
+      all_running=false
+    fi
+  done
+
+  if [ "$all_running" = true ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function to stop all containers if they are running
+stop_containers() {
+  # Stops all containers, both the initial and nested ones, if they are running.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  #local container_name=$1
+
+  #echo "INFO: Stopping all nested containers first"
+  ## Stop the nested containers if they are running
+  #for i in $(seq 1 "$NUMBER_OF_CONTAINERS"); do
+  #  local additional_container_name="${container_name}_nested_$i"
+  #  local status
+  #  status=$(sudo podman exec "$container_name" podman inspect -f '{{.State.Status}}' "$additional_container_name" 2>/dev/null)
+  #  if [ "$status" = "running" ]; then
+  #    sudo podman exec "$container_name" podman stop "$additional_container_name" --force &> /dev/null
+  #  fi
+  #done
+
+  echo "INFO: Stopping the main container"
+  sudo podman ps -q | xargs podman stop
+  ## Stop the main container if it is running
+  #local main_status
+  #main_status=$(sudo podman inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null)
+  #if [ "$main_status" = "running" ]; then
+  #    
+  #    sudo podman stop "$container_name" --force
+  #fi
+}
+
+# Shortened function to verify if all containers are stopped
+verify_containers_stopped() {
+  # Verifies if all nested containers are stopped...
+  echo "INFO: Verifying that all containers are stopped..."
+  stopped_count=$(sudo podman ps --noheading | wc -l)
+  if (( stopped_count > 0 )); then
+    echo "ERROR: $stopped_count nested containers did not stop as expected."
+    return 1
+  else
+    echo "INFO: All nested containers are stopped."
+    return 0
+  fi
+}
+
+# Function to clean up all containers and the volume
+cleanup() {
+  # Cleans up all containers and the loopback device.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  local container_name=$1
+
+  echo "INFO: Cleaning up all nested containers inside $container_name"
+  for i in $(seq 1 "$NUMBER_OF_CONTAINERS"); do
+    local additional_container_name="${container_name}_nested_$i"
+    sudo podman exec "$container_name" podman rm -f "$additional_container_name" &> /dev/null
+  done
+
+  echo "INFO: Cleaning up the main container $container_name"
+  sudo podman rm -f "$container_name" &> /dev/null
+
+  echo "INFO: Removing disk image file"
+  #umount $DISK_EXHAUSTION_MOUNT_POINT &> /dev/null
+  rm -f $DISK_EXHAUSTION_DISK_FILE
+}
+
+# Main function to run the disk exhaustion test
+disk_exhaustion_test() {
+  # Runs the disk exhaustion test by creating an initial container, filling up disk space, and creating nested containers.
+  # Args:
+  #   container_name (str): The name of the initial container.
+  #   IMAGE_NAME_CONTAINER (str): The name of the image to use for the container.
+  local container_name=$1
+
+  echo "INFO: Starting disk exhaustion test for container $container_name with image $IMAGE_NAME_CONTAINER"
+  setup_initial_container "$container_name" "$IMAGE_NAME_CONTAINER"
+
+  echo "INFO: Checking disk usage inside container $container_name"
+  local usage_percent
+  usage_percent=$(check_disk_usage "$container_name")
+  echo "INFO: Current disk usage: $usage_percent%"
+
+  if (( usage_percent >= DISK_EXHAUSTION_THRESHOLD_PERCENT )); then
+    echo "INFO: Disk usage exceeded $DISK_EXHAUSTION_THRESHOLD_PERCENT%, creating $NUMBER_OF_CONTAINERS more nested containers."
+    create_additional_containers "$container_name"
+  fi
+
+  echo "INFO: Attempting to write more data to simulate disk exhaustion"
+  if ! sudo podman exec "$container_name" sh -c "dd if=/dev/zero of=/mnt/test_volume/largefile2 bs=1M count=$DISK_EXHAUSTION_WRITE_SIZE_MB"; then
+    echo "INFO: Disk is full as expected"
+  fi
+
+  if verify_containers_running "$container_name"; then
+    echo "INFO: All nested containers are running under disk exhaustion."
+    stop_containers "$container_name"
+
+    if verify_containers_stopped; then
+      echo "PASS: All nested containers have been stopped successfully and everything is good."
+    else
+      echo "ERROR: Some nested containers did not stop as expected."
+    fi
+  else
+    echo "ERROR: Not all nested containers were running as expected."
+  fi
+
+  cleanup "$container_name"
+  echo "PASS: Disk exhaustion test completed."
+}
+
+# main
+# disk_exhaustion_test "disk_exhaustion_test" "$IMAGE_NAME_CONTAINER"

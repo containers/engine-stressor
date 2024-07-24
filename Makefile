@@ -11,6 +11,7 @@ SCRIPTS = cgroup \
 	engine \
 	network \
 	engine-operations \
+	disk-exhaustion \
 	processes \
 	volume \
 	stress \
