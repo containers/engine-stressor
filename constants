@@ -78,13 +78,27 @@ FEATURE_DISABLED=false
 
 ###############################################################################
 # Description
-# List current state of network, storage and containers. (true or false) Default: false
+# Disk exhaustion test options
 #DISK_EXHAUSTION="${FEATURE_ENABLED}"
 #DISK_EXHAUSTION_THRESHOLD_PERCENT=95 # The threshold percentage for disk usage to trigger additional container creation
 #DISK_EXHAUSTION_QUOTA_GB=1           # The size of the disk quota in gigabytes
 #DISK_EXHAUSTION_WRITE_SIZE_MB=100    # The size of the write operations in megabytes
 #DISK_EXHAUSTION_DISK_FILE="/tmp/disk_exhaustion_test.img"  # The file to use for the loopback device
 #DISK_EXHAUSTION_MOUNT_POINT="/mnt/test_volume"  # The mount point inside the container
+###############################################################################
+
+###############################################################################
+# Description
+# Memory exhaustion test options
+#MEMORY_EXHAUSTION="${FEATURE_ENABLED}"
+#MEMORY_EXHAUSTION_BASE_CONTAINER_NAME="memory_eater_base_container"
+#MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT=512m     # Memory limit for the main container
+#MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT=30  # PERCENT threshold for memory usage to trigger additional NESTED containers creation, in this case 30%
+#MEMORY_EXHAUSTION_BASE_CONTAINER_WAIT_TIME_BEFORE_STOPPING_NESTED_CONTAINERS_IN_SEC=5
+#MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXAUST_MEMORY=$(pwd)/memory-exhaustion-script
+#MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM=1
+#MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD=write64
+#MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT=60s
 ###############################################################################
 
 ###############################################################################

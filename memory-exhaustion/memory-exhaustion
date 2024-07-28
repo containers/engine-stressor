@@ -1,0 +1,211 @@
+#!/bin/bash
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Function to start a new container with the memory exhaustion script
+start_initial_container() {
+    echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+    command="sudo podman run -d --privileged \
+             --name \"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\" \
+             --replace \
+             --memory=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT\" \
+             -v \"$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXAUST_MEMORY\":/memory-exhaustion-script \
+             \"$IMAGE_NAME_CONTAINER\" /bin/sh -c \"/memory-exhaustion-script & sleep infinity\""
+
+    if eval $command; then
+        echo "INFO: Started container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME successfully"
+    else
+        echo "ERROR: Failed to start container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+        exit 1
+    fi
+}
+
+# Function to create memory exhaustion script if not exists
+create_memory_exhaustion_script() {
+    if [ ! -f "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXAUST_MEMORY" ]; then
+        cat << 'EOF' > "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXAUST_MEMORY"
+#!/bin/sh
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# memory-exhaustion-script
+
+MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT=30 # The same as THRESHOLD above
+
+
+# Function to check if a package is installed
+is_installed() {
+    rpm -q "$1" &> /dev/null
+    return $?
+}
+
+# Function to stress memory
+stress_memory() {
+    # Get total memory in MB
+    total_mem=$(free -m | awk '/Mem:/ {print $2}')
+
+    # Calculate % of total memory
+    mem_to_stress=$((total_mem * $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT / 100))
+
+    # Run stress-ng to stress the porcentage defined of total memory
+    STRESS_NG_CMD="sudo stress-ng \
+    --vm ${MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM} \
+    --vm-bytes ${mem_to_stress}M \
+    --vm-method ${MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD} \
+    --timeout ${MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT}"
+
+    eval "$STRESS_NG_CMD"
+}
+
+echo "Memory Threshold is set to $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%..."
+# Check and install procps-ng if not installed
+if ! is_installed procps-ng; then
+    echo "procps-ng is not installed. Installing..."
+    sudo dnf install -y procps-ng
+fi
+
+# Check and install stress-ng if not installed
+if ! is_installed stress-ng; then
+    echo "stress-ng is not installed. Installing..."
+    sudo dnf install -y stress-ng
+fi
+
+echo "Starting the stress process..."
+# Stress memory
+stress_memory
+
+# Keep the script running
+wait
+EOF
+        chmod +x "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXAUST_MEMORY"
+        echo "INFO: Created memory exhaustion script at $MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXAUST_MEMORY"
+    fi
+}
+
+# Function to get memory usage of a container as a percentage
+# Arguments:
+#   container_name: The name of the container
+get_memory_usage() {
+    local container_name=$1
+    podman stats \
+        --no-stream \
+	--format "{{.MemPerc}}" \
+	"$container_name" | sed 's/%//'
+}
+
+# Function to create additional containers inside the initial container
+# Arguments:
+#   container_name: The name of the initial container
+create_additional_containers() {
+    local container_name=$1
+    echo "INFO: Creating additional containers inside $container_name"
+    for i in $(seq 1 "$NUMBER_OF_CONTAINERS"); do
+        local additional_container_name="${container_name}_nested_$i"
+        local run_cmd="podman run -d --name \"$additional_container_name\" --privileged $IMAGE_NAME_CONTAINER sleep infinity"
+        echo "INFO: Running nested container $additional_container_name inside $container_name with image $IMAGE_NAME_CONTAINER"
+        echo "INFO: $run_cmd"
+        if ! sudo podman exec "$container_name" sh -c "$run_cmd"; then
+            echo "ERROR: Failed to run nested container $additional_container_name inside $container_name"
+            handle_error
+        fi
+        echo "INFO: Started nested container $additional_container_name inside $container_name"
+    done
+}
+
+# Function to stop and remove the nested containers
+cleanup_nested_containers() {
+    echo "INFO: Cleaning up nested containers"
+    for i in $(seq 1 $NUMBER_OF_CONTAINERS); do
+        local additional_container_name="${MEMORY_EXHAUSTION_BASE_CONTAINER_NAME}_nested_$i"
+        if podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman stop "$additional_container_name" && podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman rm "$additional_container_name" --force; then
+            echo "INFO: Nested container $additional_container_name stopped and removed successfully"
+        else
+            echo "ERROR: Failed to stop and remove nested container $additional_container_name"
+            exit 1
+        fi
+    done
+}
+
+# Function to stop and remove the initial container
+cleanup_initial_container() {
+    echo "INFO: Cleaning up container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+
+    STOP_CONTAINER_CMD="podman stop \"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\""
+    REMOVE_CONTAINER_CMD="podman rm \"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\" --force"
+
+    if eval "$STOP_CONTAINER_CMD"; then
+        echo "INFO: Container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME stopped successfully"
+    else
+        echo "ERROR: Failed to stop container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+        exit 1
+    fi
+
+    if eval "$REMOVE_CONTAINER_CMD"; then
+        echo "INFO: Container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME removed successfully"
+    else
+        echo "ERROR: Failed to remove container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+        exit 1
+    fi
+}
+
+# Function to cleanup everything and exit with an error code
+handle_error() {
+    cleanup_nested_containers
+    cleanup_initial_container
+    exit 1
+}
+
+memory_exhaustion_test() {
+	# Create the memory exhaustion script
+	create_memory_exhaustion_script
+
+	# Start the initial container
+	start_initial_container
+
+	# Main monitoring loop
+	while true; do
+	    # Get current memory usage of the initial container
+	    current_usage=$(get_memory_usage "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME")
+	    echo "INFO: Current memory usage of $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME: $current_usage%"
+
+	    # Check if memory usage exceeds threshold
+	    if [ "$(echo "$current_usage >= $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" | bc)" -eq 1 ]; then
+		echo "INFO: Memory usage of $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME exceeded threshold of $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%"
+		if create_additional_containers "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"; then
+		    echo "INFO: All nested containers started successfully"
+		    sleep ${MEMORY_EXHAUSTION_BASE_CONTAINER_WAIT_TIME_BEFORE_STOPPING_NESTED_CONTAINERS_IN_SEC}
+		    cleanup_nested_containers
+		    cleanup_initial_container
+		    echo "PASS: Memory exhaustion test completed successfully"
+		    exit 0
+		else
+		    echo "ERROR: Failed to start nested containers"
+		    handle_error
+		fi
+	    fi
+
+	    # Sleep for a short period before checking memory usage again
+	    sleep 1
+	done
+}
+
+# memory_exhaustion_test "memory-exhaustion-test"

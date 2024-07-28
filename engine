@@ -24,6 +24,7 @@ fi
 source "$CONSTANTS_FILE"
 source "$SHARE_DIR/cgroup"
 source "$SHARE_DIR/disk-exhaustion"
+source "$SHARE_DIR/memory-exhaustion"
 source "$SHARE_DIR/common"
 source "$SHARE_DIR/stress"
 source "$SHARE_DIR/systemd"
@@ -225,6 +226,8 @@ main() {
 
 	    if [ -n "${DISK_EXHAUSTION}" ]; then
 	        disk_exhaustion_test "disk_exhaustion_test"
+	    elif [ -n "${MEMORY_EXHAUSTION}" ]; then
+	        memory_exhaustion_test
             else
 		# No specific test, just creation of containers
 	        execute_action_in_containers_in_parallel "create_container"

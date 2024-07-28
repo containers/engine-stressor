@@ -11,7 +11,8 @@ SCRIPTS = cgroup \
 	engine \
 	network \
 	engine-operations \
-	disk-exhaustion \
+	disk-exhaustion/disk-exhaustion \
+	memory-exhaustion/memory-exhaustion \
 	processes \
 	volume \
 	stress \
@@ -52,7 +53,10 @@ install: installdeps
 	@if ! grep -q '^SHARE_DIR=$(SHAREDIR)' $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); then \
                 echo 'SHARE_DIR=$(SHAREDIR)' >> $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); \
         fi
-	@echo "Installation complete."
+	@echo "Installation complete via PREFIX: $(PREFIX)"
+	@echo "  - bin: $(DESTDIR)$(BINDIR)$(BIN_FILE)"
+	@echo "  - docs: $(DESTDIR)$(SHAREDIR_DOC)"
+	@echo "  - libs: $(DESTDIR)$(SHAREDIR)"
 
 installdeps:
 	@if test -x "$(DNF_OR_YUM)"; then rpm -q aardvark-dns > /dev/null 2>&1 || $(DNF_OR_YUM) -y install aardvark-dns; fi
