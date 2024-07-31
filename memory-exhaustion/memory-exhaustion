@@ -200,5 +200,5 @@ memory_exhaustion_test() {
 	done
 }
 
-create_memory_exhaustion_script
+# example of usage
 # memory_exhaustion_test "memory-exhaustion-test"
