@@ -32,7 +32,7 @@ stress_memory() {
     eval "$STRESS_NG_CMD"
 }
 
-echo "Memory Threshold is set to $THRESHOLD_PERCENT_PLACEHOLDER%..."
+echo "Memory Threshold is set to $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%..."
 
 echo "Starting the stress process..."
 # Stress memory
