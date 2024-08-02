@@ -22,21 +22,17 @@ stress_memory() {
     # Calculate % of total memory
     mem_to_stress=$(free -m | awk -v threshold=$THRESHOLD_PERCENT_PLACEHOLDER '/Mem:/ {print int($2 * threshold / 100)}')
 
-
     # Run stress-ng to stress the percentage defined of total memory
     STRESS_NG_CMD="sudo stress-ng \
-    --vm $VM_COUNT_PLACEHOLDER \
+    --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
     --vm-bytes ${mem_to_stress}M \
-    --vm-method $VM_METHOD_PLACEHOLDER \
-    --timeout $TIMEOUT_PLACEHOLDER"
+    --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
+    --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
 
     eval "$STRESS_NG_CMD"
 }
 
 echo "Memory Threshold is set to $THRESHOLD_PERCENT_PLACEHOLDER%..."
-
-# Install necessary packages
-sudo dnf install -y procps-ng stress-ng
 
 echo "Starting the stress process..."
 # Stress memory
