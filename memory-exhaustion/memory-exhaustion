@@ -19,14 +19,18 @@ start_initial_container() {
              --replace \
              --memory=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT\" \
              \"$IMAGE_NAME_CONTAINER\" /bin/sh -c '\
+             MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT\" && \
+             THRESHOLD_PERCENT_PLACEHOLDER=\"$THRESHOLD_PERCENT_PLACEHOLDER\" && \
+             MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM\" && \
+             MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD\" && \
              dnf install git -y && \
              dnf install make which stress-ng procps-ng -y && \
              git clone https://github.com/containers/engine-stressor.git && \
              cd engine-stressor/memory-exhaustion && \
-             sed -i \"s/\\\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g\" exhaustion-memory-engine-stressor && \
-             sed -i \"s/\\\$THRESHOLD_PERCENT_PLACEHOLDER/$THRESHOLD_PERCENT_PLACEHOLDER/g\" exhaustion-memory-engine-stressor && \
-             sed -i \"s/\\\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g\" exhaustion-memory-engine-stressor && \
-             sed -i \"s/\\\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\$THRESHOLD_PERCENT_PLACEHOLDER/\$THRESHOLD_PERCENT_PLACEHOLDER/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g\" exhaustion-memory-engine-stressor && \
              cd .. && \
              sudo make install && \
              exhaustion-memory-engine-stressor & \
