@@ -23,21 +23,15 @@ start_initial_container() {
              dnf install make which stress-ng procps-ng -y && \
              git clone https://github.com/containers/engine-stressor.git && \
              cd engine-stressor/memory-exhaustion && \
-             sed -i s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g exhaustion-memory-engine-stressor && \
-             sed -i s/\$THRESHOLD_PERCENT_PLACEHOLDER/$THRESHOLD_PERCENT_PLACEHOLDER/g exhaustion-memory-engine-stressor && \
-             sed -i s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g exhaustion-memory-engine-stressor && \
-             sed -i s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g exhaustion-memory-engine-stressor && \
+             sed -i \"s/\\\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\\\$THRESHOLD_PERCENT_PLACEHOLDER/$THRESHOLD_PERCENT_PLACEHOLDER/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\\\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g\" exhaustion-memory-engine-stressor && \
+             sed -i \"s/\\\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g\" exhaustion-memory-engine-stressor && \
              cd .. && \
              sudo make install && \
              exhaustion-memory-engine-stressor & \
              sleep infinity'"
-
-    if eval $command; then
-        echo "INFO: Started container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME successfully"
-    else
-        echo "ERROR: Failed to start container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
-        exit 1
-    fi
+    eval "$command"
 }
 
 # Function to get memory usage of a container as a percentage
