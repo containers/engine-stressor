@@ -18,78 +18,19 @@ start_initial_container() {
              --name \"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\" \
              --replace \
              --memory=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT\" \
-             -v \"$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY\":/memory-exhaustion-script \
-             \"$IMAGE_NAME_CONTAINER\" /bin/sh -c \"/memory-exhaustion-script & sleep infinity\""
+             \"$IMAGE_NAME_CONTAINER\" /bin/sh -c \"\
+             dnf install git make which stress-ng procps-ng -y && \
+             git clone https://github.com/containers/engine-stressor.git && \
+             cd engine-stressor && \
+             sudo make install && \
+             exhaustion-memory-engine-stressor & \
+             sleep infinity\""
 
     if eval $command; then
         echo "INFO: Started container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME successfully"
     else
         echo "ERROR: Failed to start container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
         exit 1
-    fi
-}
-
-create_memory_exhaustion_script() {
-    if [ ! -f "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY" ]; then
-        cat << 'EOF' > "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
-#!/bin/sh
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Function to check if a package is installed
-is_installed() {
-    rpm -q "\$1" &> /dev/null
-    return \$?
-}
-
-# Function to stress memory
-stress_memory() {
-    # Get total memory in MB
-    total_mem=$(free -m | awk '/Mem:/ {print $2}')
-
-    # Calculate % of total memory
-    mem_to_stress=$((total_mem * THRESHOLD_PERCENT_PLACEHOLDER / 100))
-
-    # Run stress-ng to stress the percentage defined of total memory
-    STRESS_NG_CMD="sudo stress-ng \
-    --vm VM_COUNT_PLACEHOLDER \
-    --vm-bytes ${mem_to_stress}M \
-    --vm-method VM_METHOD_PLACEHOLDER \
-    --timeout TIMEOUT_PLACEHOLDER"
-
-    eval "\$STRESS_NG_CMD"
-}
-
-echo "Memory Threshold is set to THRESHOLD_PERCENT_PLACEHOLDER%..."
-
-# Install necessary packages
-sudo dnf install -y procps-ng stress-ng
-
-echo "Starting the stress process..."
-# Stress memory
-stress_memory
-
-# Keep the script running
-wait
-EOF
-
-        # Replace placeholders with actual variable values
-        sed -i "s/THRESHOLD_PERCENT_PLACEHOLDER/$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT/g" "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
-        sed -i "s/VM_COUNT_PLACEHOLDER/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g" "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
-        sed -i "s/VM_METHOD_PLACEHOLDER/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g" "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
-        sed -i "s/TIMEOUT_PLACEHOLDER/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g" "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
-
-        chmod +x "$MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
-        echo "INFO: Created memory exhaustion script at $MEMORY_EXHAUSTION_BASE_CONTAINER_SCRIPT_EXHAUST_MEMORY"
     fi
 }
 
@@ -167,9 +108,6 @@ handle_error() {
 }
 
 memory_exhaustion_test() {
-	# Create the memory exhaustion script
-	create_memory_exhaustion_script
-
 	# Start the initial container
 	start_initial_container
 
