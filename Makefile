@@ -50,6 +50,7 @@ install: installdeps
                 install -m 644 $$doc $(DESTDIR)$(SHAREDIR_DOC); \
         done
 	@install -m 755 $(BIN_FILE) $(DESTDIR)$(BINDIR)
+	@install -m 755 $(MEM_EXHAUSTION_BIN) $(DESTDIR)$(BINDIR)
 	@install -m 644 $(CONFIG_FILE) $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE)
 	@if ! grep -q '^SHARE_DIR=$(SHAREDIR)' $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); then \
                 echo 'SHARE_DIR=$(SHAREDIR)' >> $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); \
