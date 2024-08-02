@@ -14,28 +14,56 @@
 # Function to start a new container with the memory exhaustion script
 start_initial_container() {
     echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
-    command="sudo podman run -d --privileged \
-             --name \"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\" \
-             --replace \
-             --memory=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT\" \
-             \"$IMAGE_NAME_CONTAINER\" /bin/sh -c '\
-             MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT\" && \
-             THRESHOLD_PERCENT_PLACEHOLDER=\"$THRESHOLD_PERCENT_PLACEHOLDER\" && \
-             MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM\" && \
-             MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD\" && \
-             dnf install git -y && \
-             dnf install make which stress-ng procps-ng -y && \
-             git clone https://github.com/containers/engine-stressor.git && \
-             cd engine-stressor/memory-exhaustion && \
-             sed -i \"s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g\" exhaustion-memory-engine-stressor && \
-             sed -i \"s/\$THRESHOLD_PERCENT_PLACEHOLDER/\$THRESHOLD_PERCENT_PLACEHOLDER/g\" exhaustion-memory-engine-stressor && \
-             sed -i \"s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g\" exhaustion-memory-engine-stressor && \
-             sed -i \"s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g\" exhaustion-memory-engine-stressor && \
-             cd .. && \
-             sudo make install && \
-             exhaustion-memory-engine-stressor & \
-             sleep infinity'"
-    eval "$command"
+    sudo podman run -d --privileged \
+        --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
+        --replace \
+        --memory="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
+        "$IMAGE_NAME_CONTAINER" sleep infinity
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Failed to start the initial container."
+        return 1
+    fi
+
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" install_dependencies
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" clone_repository
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" update_scripts
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" run_stressor
+}
+
+exec_into_container() {
+    container_name=$1
+    shift
+    command=$@
+    sudo podman exec "$container_name" /bin/sh -c "$command"
+}
+
+install_dependencies() {
+    echo "INFO: Installing dependencies in the container"
+    dnf install git -y && \
+    dnf install make which stress-ng procps-ng -y
+}
+
+clone_repository() {
+    echo "INFO: Cloning the engine-stressor repository"
+    git clone https://github.com/containers/engine-stressor.git
+}
+
+update_scripts() {
+    echo "INFO: Updating the stressor scripts"
+    cd engine-stressor/memory-exhaustion && \
+    sed -i "s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g" exhaustion-memory-engine-stressor && \
+    sed -i "s/\$THRESHOLD_PERCENT_PLACEHOLDER/$THRESHOLD_PERCENT_PLACEHOLDER/g" exhaustion-memory-engine-stressor && \
+    sed -i "s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g" exhaustion-memory-engine-stressor && \
+    sed -i "s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g" exhaustion-memory-engine-stressor && \
+    cd ..
+}
+
+run_stressor() {
+    echo "INFO: Running the stressor script"
+    cd engine-stressor/memory-exhaustion && \
+    make install && \
+    exhaustion-memory-engine-stressor &
 }
 
 # Function to get memory usage of a container as a percentage
