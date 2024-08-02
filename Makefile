@@ -25,6 +25,7 @@ SCRIPTS = cgroup \
 	selinux
 
 BIN_FILE = engine-stressor
+MEM_EXHAUSTION_BIN = memory-exhaustion/exhaustion-memory-engine-stressor
 
 DOCS = README.md LICENSE SECURITY.md NOTICE
 
@@ -54,7 +55,7 @@ install: installdeps
                 echo 'SHARE_DIR=$(SHAREDIR)' >> $(DESTDIR)$(CONFIGDIR)/$(CONFIG_FILE); \
         fi
 	@echo "Installation complete via PREFIX: $(PREFIX)"
-	@echo "  - bin: $(DESTDIR)$(BINDIR)$(BIN_FILE)"
+	@echo "  - bin: $(DESTDIR)$(BINDIR)"
 	@echo "  - docs: $(DESTDIR)$(SHAREDIR_DOC)"
 	@echo "  - libs: $(DESTDIR)$(SHAREDIR)"
 
