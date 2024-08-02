@@ -12,25 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # Function to start a new container with the memory exhaustion script
-start_initial_container() {
-    echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
-    sudo podman run -d --privileged \
-        --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
-        --replace \
-        --memory="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
-        "$IMAGE_NAME_CONTAINER" sleep infinity
-
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Failed to start the initial container."
-        return 1
-    fi
-
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" install_dependencies
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" clone_repository
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" update_scripts
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" run_stressor
-}
-
 exec_into_container() {
     container_name=$1
     shift
@@ -49,21 +30,41 @@ clone_repository() {
     git clone https://github.com/containers/engine-stressor.git
 }
 
-update_scripts() {
-    echo "INFO: Updating the stressor scripts"
-    cd engine-stressor/memory-exhaustion && \
-    sed -i "s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT/g" exhaustion-memory-engine-stressor && \
-    sed -i "s/\$THRESHOLD_PERCENT_PLACEHOLDER/$THRESHOLD_PERCENT_PLACEHOLDER/g" exhaustion-memory-engine-stressor && \
-    sed -i "s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM/g" exhaustion-memory-engine-stressor && \
-    sed -i "s/\$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD/g" exhaustion-memory-engine-stressor && \
-    cd ..
-}
-
 run_stressor() {
     echo "INFO: Running the stressor script"
     cd engine-stressor/memory-exhaustion && \
-    make install && \
-    exhaustion-memory-engine-stressor &
+    sudo make install && \
+    ./exhaustion-memory-engine-stressor
+}
+
+start_initial_container() {
+    echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+    sudo podman run -d --privileged \
+        --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
+        --replace \
+        --memory="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
+        -e MEMORY_EXHAUSTION_BASE_CONTAINER_NAME="$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
+        -e MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
+        -e IMAGE_NAME_CONTAINER="$IMAGE_NAME_CONTAINER" \
+        -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT" \
+        -e MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT="$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" \
+        -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM" \
+        -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD" \
+        "$IMAGE_NAME_CONTAINER" sleep infinity
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Failed to start the initial container."
+        return 1
+    fi
+
+    echo "INFO: Installing dependencies in the container"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install git -y && dnf install make which stress-ng procps-ng -y"
+
+    echo "INFO: Cloning the engine-stressor repository"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "git clone https://github.com/containers/engine-stressor.git"
+
+    echo "INFO: Running the stressor script"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "cd engine-stressor && sudo make install && exhaustion-memory-engine-stressor"
 }
 
 # Function to get memory usage of a container as a percentage
