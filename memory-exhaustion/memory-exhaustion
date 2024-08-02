@@ -46,7 +46,7 @@ start_initial_container() {
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "git clone https://github.com/containers/engine-stressor.git"
 
     echo "INFO: Running the stressor script"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "cd engine-stressor && sudo make install && exhaustion-memory-engine-stressor &"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "cd engine-stressor && sudo make install && exhaustion-memory-engine-stressor"
 }
 
 # Function to get memory usage of a container as a percentage
@@ -124,7 +124,7 @@ handle_error() {
 
 memory_exhaustion_test() {
 	# Start the initial container
-	start_initial_container
+	start_initial_container &
 
 	# Main monitoring loop
 	while true; do
