@@ -39,6 +39,21 @@ start_initial_container() {
         return 1
     fi
 
+    echo "INFO: Waiting for the container to be fully started..."
+    for i in {1..10}; do
+        if sudo podman ps --filter "name=$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" --filter "status=running" | grep -q "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"; then
+            echo "INFO: Container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME is running."
+            break
+        fi
+        echo "INFO: Waiting for container to start... ($i/10)"
+        sleep 1
+    done
+
+    if ! sudo podman ps --filter "name=$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" --filter "status=running" | grep -q "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"; then
+        echo "ERROR: Container did not start in time."
+        return 1
+    fi
+
     echo "INFO: Installing dependencies in the container"
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install git -y && dnf install make which stress-ng procps-ng -y"
 
