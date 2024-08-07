@@ -138,34 +138,63 @@ handle_error() {
 }
 
 memory_exhaustion_test() {
-	# Start the initial container
-	start_initial_container &
+    # Constants
+    local TIMEOUT=1500  # 25 minutes in seconds
 
-	# Main monitoring loop
-	while true; do
-	    # Get current memory usage of the initial container
-	    current_usage=$(get_memory_usage "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME")
-	    echo "INFO: Current memory usage of $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME: $current_usage%"
+    # Start the initial container
+    start_initial_container &
 
-	    # Check if memory usage exceeds threshold
-	    if [ "$(echo "$current_usage >= $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" | bc)" -eq 1 ]; then
-		echo "INFO: Memory usage of $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME exceeded threshold of $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%"
-		if create_additional_containers "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"; then
-		    echo "INFO: All nested containers started successfully"
-		    sleep ${MEMORY_EXHAUSTION_BASE_CONTAINER_WAIT_TIME_BEFORE_STOPPING_NESTED_CONTAINERS_IN_SEC}
-		    cleanup_nested_containers
-		    cleanup_initial_container
-		    echo "PASS: Memory exhaustion test completed successfully"
-		    exit 0
-		else
-		    echo "ERROR: Failed to start nested containers"
-		    handle_error
-		fi
-	    fi
+    # Main monitoring loop
+    SECONDS=0
+    while [ $SECONDS -lt $TIMEOUT ]; do
+        # Get the list of current containers and count them
+        container_list=$(podman ps --format "{{.Names}}" 2>/dev/null)
+        container_count=$(echo "$container_list" | wc -l)
 
-	    # Sleep for a short period before checking memory usage again
-	    sleep 1
-	done
+        # Check if the container list is empty
+        if [ -z "$container_list" ]; then
+            echo "INFO: List of current containers: (0)"
+        else
+            echo "INFO: List of current containers: ($container_count) $container_list"
+        fi
+
+        # Get current memory usage of the initial container
+        current_usage=$(get_memory_usage "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" 2>/dev/null)
+
+        # Check if current_usage is empty or nothing returned
+        if [ -z "$current_usage" ]; then
+            echo "INFO: No memory usage data returned for $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME. Continuing to sleep."
+            sleep 1
+            continue
+        fi
+
+        echo "INFO: Current memory usage of $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME: $current_usage%"
+
+        # Check if memory usage exceeds threshold
+        if [ "$(echo "$current_usage >= $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" | bc)" -eq 1 ]; then
+            echo "INFO: Memory usage of $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME exceeded threshold of $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%"
+            if create_additional_containers "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"; then
+                echo "INFO: All nested containers started successfully"
+                sleep ${MEMORY_EXHAUSTION_BASE_CONTAINER_WAIT_TIME_BEFORE_STOPPING_NESTED_CONTAINERS_IN_SEC}
+                cleanup_nested_containers
+                cleanup_initial_container
+                echo "PASS: Memory exhaustion test completed successfully"
+                exit 0
+            else
+                echo "ERROR: Failed to start nested containers"
+                handle_error
+            fi
+        fi
+
+        # Sleep for a short period before checking memory usage again
+        sleep 1
+    done
+
+    # If the timeout is reached
+    echo "INFO: Memory exhaustion test timed out after 25 minutes."
+    cleanup_initial_container
+    echo "FAIL: Memory exhaustion test did not complete within the timeout period"
+    exit 1
 }
 
 # example of usage
