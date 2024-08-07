@@ -55,7 +55,7 @@ start_initial_container() {
     fi
 
     echo "INFO: Installing dependencies in the container"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install git -y && dnf install make which stress-ng procps-ng -y"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install -y git make which stress-ng procps-ng"
 
     echo "INFO: Cloning the engine-stressor repository"
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "git clone https://github.com/containers/engine-stressor.git"
