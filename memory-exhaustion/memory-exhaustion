@@ -20,11 +20,33 @@ exec_into_container() {
 }
 
 start_initial_container() {
+    echo "========== DEBUG: OS =================="
+    # Debug: Display the contents of /etc/os-release
+    sudo cat /etc/os-release
+    echo "========== DEBUG: OS =================="
+
+    # Check if the OS is CentOS Stream 9 or higher
+    OS_VERSION=$(rpm -E %{rhel})
+
+    if [[ "$OS_VERSION" =~ ^[0-9]+$ && "$OS_VERSION" -ge 9 ]]; then
+        echo "INFO: CentOS Stream 9 or higher detected. Creating necessary directories for volume mounts..."
+        sudo mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
+
+        VOLUME_OPTS="--volume /var/tmp/varlog:/var/log:Z \
+                     --volume /var/tmp/dnf-cache:/var/cache/dnf:Z \
+                     --volume /var/tmp/dnf-lib:/var/lib/dnf:Z \
+                     --volume /var/tmp/rpm:/var/lib/rpm:Z"
+    else
+        echo "INFO: OS is not CentOS Stream 9 or higher. Skipping volume mounts."
+        VOLUME_OPTS=""
+    fi
+
     echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
     sudo podman run -d --privileged \
         --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
         --replace \
         --memory="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
+        $VOLUME_OPTS \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_NAME="$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
         -e IMAGE_NAME_CONTAINER="$IMAGE_NAME_CONTAINER" \
