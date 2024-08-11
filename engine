@@ -68,8 +68,10 @@ check_os_and_modify_podman_cmd() {
     local os_name
     local os_version
 
+    echo "========== DEBUG: OS =================="
     # Debug: Display the contents of /etc/os-release
     sudo cat /etc/os-release
+    echo "========== DEBUG: OS =================="
 
     os_name=$(grep -oP '(?<=^NAME=).+' /etc/os-release | tr -d '"')
     os_version=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
