@@ -67,13 +67,17 @@ install_packages() {
 check_os_and_modify_podman_cmd() {
     local os_name
     local os_version
+
+    # Debug: Display the contents of /etc/os-release
+    sudo cat /etc/os-release
+
     os_name=$(grep -oP '(?<=^NAME=).+' /etc/os-release | tr -d '"')
     os_version=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 
     # Check if the OS is CentOS Stream 9 or higher
     if [[ "$os_name" == "CentOS Stream" && "$os_version" -ge 9 ]]; then
         # Create necessary directories
-        mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
+        sudo mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
 
         # Add volume mounts to the Podman command
         podman_cmd+=" --volume /var/tmp/varlog:/var/log:Z"
