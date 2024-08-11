@@ -62,20 +62,41 @@ install_packages() {
     return 0
 }
 
+# Function to check if the OS is CentOS Stream 9 or higher and modify the Podman command
+# FIX-ME: We found in CentOS 9 Stream some Read only filesystem cases, this is a probably temp. workaround
+check_os_and_modify_podman_cmd() {
+    local os_name
+    local os_version
+    os_name=$(grep -oP '(?<=^NAME=).+' /etc/os-release | tr -d '"')
+    os_version=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
+
+    # Check if the OS is CentOS Stream 9 or higher
+    if [[ "$os_name" == "CentOS Stream" && "$os_version" -ge 9 ]]; then
+        # Create necessary directories
+        mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
+
+        # Add volume mounts to the Podman command
+        podman_cmd+=" --volume /var/tmp/varlog:/var/log:Z"
+        podman_cmd+=" --volume /var/tmp/dnf-cache:/var/cache/dnf:Z"
+        podman_cmd+=" --volume /var/tmp/dnf-lib:/var/lib/dnf:Z"
+        podman_cmd+=" --volume /var/tmp/rpm:/var/lib/rpm:Z"
+    fi
+}
+
 # Function to create a container
 create_container() {
     local container_name=$1
-
     local start_time=$(date +%s%3N) # Log start time in milliseconds
-    local ostree_deployment=""    
+    local ostree_deployment=""
 
     # Running Podman containers under a systemd scope integrates them more
     # tightly with the systemd service manager.
-    if stat  /run/ostree-booted > /dev/null 2>&1 || [[ $(uname -r | grep -w -q el[0-9]*iv) -eq 0 ]]; then
+    if stat /run/ostree-booted > /dev/null 2>&1 || [[ $(uname -r | grep -w -q el[0-9]*iv) -eq 0 ]]; then
         ostree_deployment="--read-only=false"
     fi
 
     podman_cmd="podman run ${ostree_deployment} -d --replace --name ${container_name}"
+
     if [ -n "${VOLUME_NAME}" ]; then
         podman_cmd+=" --volume ${VOLUME_NAME}:${VOLUME_PATH}"
     fi
@@ -95,21 +116,24 @@ create_container() {
 
     podman_cmd+=" ${IMAGE_NAME_CONTAINER} ${IMAGE_COMMAND}"
 
-    cmd="sudo systemd-run --quiet --scope \
-    	      -p Delegate=yes \
-    	      --slice=${CGROUP_NAME}.slice \
-    	      ${podman_cmd}"
+    # Check OS and modify Podman command if needed
+    check_os_and_modify_podman_cmd
 
-    # run the command
+    cmd="sudo systemd-run --quiet --scope \
+              -p Delegate=yes \
+              --slice=${CGROUP_NAME}.slice \
+              ${podman_cmd}"
+
+    # Run the command
     systemd_scope=$(eval $cmd)
 
     # Add the scope thing for the validation
     systemd_scope="libpod-${systemd_scope}.scope"
 
-    # check if it's running using systemctl is-active or
+    # Check if it's running using systemctl is-active or
     # systemctl list-units --type=scope --state=running
     if ! sudo systemctl is-active "${systemd_scope}" &> /dev/null; then
-        echo -e "FAIL: Container ${container_name} fail to start"
+        echo -e "FAIL: Container ${container_name} failed to start"
         exit 255
     fi
 
@@ -125,7 +149,6 @@ create_container() {
     if [[ ! -z "$EXTRA_PACKAGES_TO_INSTALL" ]]; then
         install_packages "${container_name}"
     fi
-
 }
 
 # Function to stop and remove a container
