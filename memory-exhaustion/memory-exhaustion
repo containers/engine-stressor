@@ -25,11 +25,12 @@ start_initial_container() {
     sudo cat /etc/os-release
     echo "========== DEBUG: OS =================="
 
-    # Check if the OS is CentOS Stream 9 or higher
-    OS_VERSION=$(rpm -E %{rhel})
+    # Read OS information from /etc/os-release
+    source /etc/os-release
 
-    if [[ "$OS_VERSION" =~ ^[0-9]+$ && "$OS_VERSION" -ge 9 ]]; then
-        echo "INFO: CentOS Stream 9 or higher detected. Creating necessary directories for volume mounts..."
+    # Check if the OS is CentOS or RHEL and the version is 9 or higher
+    if [[ "$ID" =~ ^(rhel|centos)$ && "${VERSION_ID%%.*}" -ge 9 ]]; then
+        echo "INFO: RHEL or CentOS 9 or higher detected. Creating necessary directories for volume mounts..."
         sudo mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
 
         VOLUME_OPTS="--volume /var/tmp/varlog:/var/log:Z \
@@ -37,7 +38,7 @@ start_initial_container() {
                      --volume /var/tmp/dnf-lib:/var/lib/dnf:Z \
                      --volume /var/tmp/rpm:/var/lib/rpm:Z"
     else
-        echo "INFO: OS is not CentOS Stream 9 or higher. Skipping volume mounts."
+        echo "INFO: OS is not RHEL or CentOS 9 or higher. Skipping volume mounts."
         VOLUME_OPTS=""
     fi
 
