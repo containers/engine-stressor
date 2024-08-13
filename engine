@@ -122,9 +122,6 @@ create_container() {
 
     podman_cmd+=" ${IMAGE_NAME_CONTAINER} ${IMAGE_COMMAND}"
 
-    # Check OS and modify Podman command if needed
-    check_os_and_modify_podman_cmd
-
     cmd="sudo systemd-run --quiet --scope \
               -p Delegate=yes \
               --slice=${CGROUP_NAME}.slice \
