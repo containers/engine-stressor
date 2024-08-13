@@ -19,25 +19,6 @@ exec_into_container() {
     sudo podman exec "$container_name" /bin/sh -c "$command"
 }
 
-# Function to modify the Fedora repository file inside the container
-# We are getting 404 error in Fedora aarch64, let's try this workaround
-modify_repo_file() {
-    local container_name="$1"
-
-    echo "Modifying the repository settings in the container: $container_name"
-    podman exec "$container_name" bash -c "
-        repo_file='/etc/yum.repos.d/fedora.repo'
-
-        if [ -f \$repo_file ]; then
-            echo 'Updating repository file: \$repo_file'
-            sed -i 's|^metalink=|#metalink=|g' \$repo_file
-            sed -i '/^#metalink=/a baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/aarch64/os/' \$repo_file
-        else
-            echo 'Repository file not found: \$repo_file'
-        fi
-    "
-}
-
 start_initial_container() {
 
     echo "========== DEBUG: /etc/os-release =================="
@@ -80,7 +61,8 @@ start_initial_container() {
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT="$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM" \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD" \
-        "$IMAGE_NAME_CONTAINER" sleep infinity
+        "$IMAGE_NAME_CONTAINER" \
+       sh -c "sed -i 's|^baseurl=.*|baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/aarch64/os/|' /etc/yum.repos.d/fedora.repo && sleep infinity"
 
     if [ $? -ne 0 ]; then
         echo "ERROR: Failed to start the initial container."
