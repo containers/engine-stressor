@@ -61,8 +61,7 @@ start_initial_container() {
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT="$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM" \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD" \
-        "$IMAGE_NAME_CONTAINER" \
-       sh -c "sed -i 's|^baseurl=.*|baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/aarch64/os/|' /etc/yum.repos.d/fedora.repo && sleep infinity"
+        "$IMAGE_NAME_CONTAINER" sleep infinity
 
     if [ $? -ne 0 ]; then
         echo "ERROR: Failed to start the initial container."
