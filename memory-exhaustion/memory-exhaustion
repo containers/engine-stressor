@@ -19,6 +19,40 @@ exec_into_container() {
     sudo podman exec "$container_name" /bin/sh -c "$command"
 }
 
+# Function to modify the Fedora repository files inside the container
+# We are getting 404 errors in Fedora aarch64, let's try this workaround
+modify_repo_files() {
+    local container_name="$1"
+
+    echo "Modifying the repository settings in the container: $container_name"
+    podman exec "$container_name" bash -c "
+        repos=('fedora.repo' 'fedora-updates.repo')
+
+        for repo_file in \"\${repos[@]}\"; do
+            full_path=\"/etc/yum.repos.d/\$repo_file\"
+
+            if [ -f \$full_path ]; then
+                echo '--- BEFORE modification: \$full_path ---'
+                cat \$full_path
+
+                echo 'Updating repository file: \$full_path'
+                sed -i 's|^metalink=|#metalink=|g' \$full_path
+
+                if [[ \$repo_file == 'fedora.repo' ]]; then
+                    sed -i '/^#metalink=/a baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/aarch64/os/' \$full_path
+                elif [[ \$repo_file == 'fedora-updates.repo' ]]; then
+                    sed -i '/^#metalink=/a baseurl=https://download-ib01.fedoraproject.org/pub/fedora/linux/updates/\$releasever/Everything/aarch64/' \$full_path
+                fi
+
+                echo '--- AFTER modification: \$full_path ---'
+                cat \$full_path
+            else
+                echo 'Repository file not found: \$full_path'
+            fi
+        done
+    "
+}
+
 start_initial_container() {
 
     echo "========== DEBUG: /etc/os-release =================="
@@ -87,7 +121,7 @@ start_initial_container() {
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "ls /etc/yum.repos.d/"
 
     # Replace mirror for aarch64 as it's failing - workaround
-    modify_repo_file "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+    modify_repo_files "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
 
     echo "INFO: Installing dependencies in the container"
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install -y git make which stress-ng procps-ng"
