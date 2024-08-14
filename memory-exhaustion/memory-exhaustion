@@ -19,6 +19,30 @@ exec_into_container() {
     sudo podman exec "$container_name" /bin/sh -c "$command"
 }
 
+list_installed_packages_with_sizes() {
+    # Define constants
+    KB=1024
+    MB=$((1024 * KB))
+    GB=$((1024 * MB))
+
+    # Capture $1 into a variable
+    output_from_dnf_list_installed="$1"
+
+    # Process the captured output
+    echo "$output_from_dnf_list_installed" | awk '{print $1}' | xargs rpm -q --qf '%-40{NAME} %-10{SIZE}\n' | awk -v KB="$KB" -v MB="$MB" -v GB="$GB" '
+    {
+        if ($2 >= GB)
+            size = sprintf("%.2f GB", $2 / GB);
+        else if ($2 >= MB)
+            size = sprintf("%.2f MB", $2 / MB);
+        else if ($2 >= KB)
+            size = sprintf("%.2f KB", $2 / KB);
+        else
+            size = sprintf("%d B", $2);
+        printf "%-40s %10s\n", $1, size;
+    }' | sort -k2 -h
+}
+
 # Function to modify the Fedora repository files inside the container
 # We are getting 404 errors in Fedora aarch64, let's try this workaround
 modify_repo_files() {
@@ -117,6 +141,19 @@ start_initial_container() {
         echo "ERROR: Container did not start in time."
         return 1
     fi
+
+     # DEBUG: List package installed in the distro and size
+     output=$(podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" dnf list installed)
+     list_installed_packages_with_sizes "$output"
+     # DEBUG: List package installed in the distro and size
+
+     # DEBUG: "df -h"
+     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "df -h"
+     # DEBUG: "df -h"
+
+     # DEBUG: "free -hg"
+     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "free -hg"
+     # DEBUG: "free -hg"
 
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "cat /etc/os-release"
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "ls /etc/yum.repos.d/"
