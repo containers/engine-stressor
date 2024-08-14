@@ -125,7 +125,7 @@ start_initial_container() {
     modify_repo_files "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
 
     echo "INFO: Installing dependencies in the container"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=$VERSION_ID -y git make which stress-ng procps-ng"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y git make which stress-ng procps-ng"
 
     echo "INFO: Cloning the engine-stressor repository"
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "git clone https://github.com/containers/engine-stressor.git"
