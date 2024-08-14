@@ -23,6 +23,7 @@ exec_into_container() {
 # We are getting 404 errors in Fedora aarch64, let's try this workaround
 modify_repo_files() {
     local container_name="$1"
+    arch=$(uname -m)
 
     echo "Modifying the repository settings in the container: $container_name"
     podman exec "$container_name" bash -c "
@@ -39,9 +40,9 @@ modify_repo_files() {
                 sed -i 's|^metalink=|#metalink=|g' \$full_path
 
                 if [[ \$repo_file == 'fedora.repo' ]]; then
-                    sed -i '/^#metalink=/a baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/aarch64/os/' \$full_path
+                    sed -i '/^#metalink=/a baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/$arch/os/' \$full_path
                 elif [[ \$repo_file == 'fedora-updates.repo' ]]; then
-                    sed -i '/^#metalink=/a baseurl=https://download-ib01.fedoraproject.org/pub/fedora/linux/updates/\$releasever/Everything/aarch64/' \$full_path
+                    sed -i '/^#metalink=/a baseurl=https://download-ib01.fedoraproject.org/pub/fedora/linux/updates/\$releasever/Everything/$arch/' \$full_path
                 fi
 
                 echo '--- AFTER modification: \$full_path ---'
