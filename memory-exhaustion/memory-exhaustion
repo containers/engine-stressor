@@ -80,15 +80,15 @@ modify_repo_files() {
 
 start_initial_container() {
 
-    echo "========== DEBUG: /etc/os-release =================="
+    # echo "========== DEBUG: /etc/os-release =================="
     # Debug: Display the contents of /etc/os-release
-    sudo cat /etc/os-release
-    echo "========== DEBUG: /etc/os-release =================="
+    #sudo cat /etc/os-release
+    #echo "========== DEBUG: /etc/os-release =================="
 
-    echo "========== DEBUG: /etc/os-release =================="
+    #echo "========== DEBUG: /etc/os-release =================="
     # Debug: Display the contents of /etc/yum.repos.d/
-    sudo ls /etc/yum.repos.d/
-    echo "========== DEBUG: /etc/os-release =================="
+    #sudo ls /etc/yum.repos.d/
+    #echo "========== DEBUG: /etc/os-release =================="
 
     # Read OS information from /etc/os-release
     source /etc/os-release
@@ -142,34 +142,15 @@ start_initial_container() {
         return 1
     fi
 
-     # DEBUG: List package installed in the distro and size
-     output=$(podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=$(source /etc/os-release && echo \$VERSION_ID) -y git make which stress-ng procps-ng")
-list_installed_packages_with_sizes "$output"
-     list_installed_packages_with_sizes "$output"
-     # DEBUG: List package installed in the distro and size
-
-     # DEBUG: "df -h"
-     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "df -h"
-     # DEBUG: "df -h"
-
-     # DEBUG: "free -hg"
-     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "free -hg"
-     # DEBUG: "free -hg"
-
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "cat /etc/os-release"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "ls /etc/yum.repos.d/"
-
     # Replace mirror for aarch64 as it's failing - workaround
-    modify_repo_files "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
+    #modify_repo_files "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
 
     echo "INFO: Installing dependencies in the container"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y git make which stress-ng procps-ng"
-
-    echo "INFO: Cloning the engine-stressor repository"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "git clone https://github.com/containers/engine-stressor.git"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
 
     echo "INFO: Running the stressor script"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "cd engine-stressor && sudo make install && exhaustion-memory-engine-stressor"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "curl -L -o /usr/local/bin/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && sudo chmod +x /usr/local/bin/exhaustion-memory-engine-stressor && /usr/local/bin/exhaustion-memory-engine-stressor"
+
 }
 
 # Function to get memory usage of a container as a percentage
