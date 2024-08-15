@@ -90,6 +90,9 @@ start_initial_container() {
     #sudo ls /etc/yum.repos.d/
     #echo "========== DEBUG: /etc/os-release =================="
 
+    # read /etc/fstab
+    cat /etc/fstab
+
     # Read OS information from /etc/os-release
     source /etc/os-release
 
@@ -111,6 +114,7 @@ start_initial_container() {
     sudo podman run -d --privileged \
         --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
         --replace \
+        --storage-opt size=10G \
         --memory="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
         $VOLUME_OPTS \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_NAME="$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
@@ -142,14 +146,19 @@ start_initial_container() {
         return 1
     fi
 
-    # Replace mirror for aarch64 as it's failing - workaround
-    #modify_repo_files "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
-
     echo "INFO: Installing dependencies in the container"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "rpm -qa --queryformat '%{SIZE} %{name}-%{version}-%{release}.%{arch}\n' | sort -n -r | numfmt --to=iec-i --suffix=B --padding=7"
+
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "df -h"
+
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
 
+    curl -L -o /tmp/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && chmod +x /tmp/exhaustion-memory-engine-stressor
+
+    podman cp /tmp/exhaustion-memory-engine-stressor "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME":/usr/local/bin
+
     echo "INFO: Running the stressor script"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "curl -L -o /usr/local/bin/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && sudo chmod +x /usr/local/bin/exhaustion-memory-engine-stressor && /usr/local/bin/exhaustion-memory-engine-stressor"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "/usr/local/bin/exhaustion-memory-engine-stressor"
 
 }
 
