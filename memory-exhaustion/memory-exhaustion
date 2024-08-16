@@ -106,12 +106,7 @@ start_initial_container() {
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export PATH=/mnt/test_volume/bin:\$PATH" >> ~/.bashrc'
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> ~/.bashrc'
 
-
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'source /etc/profile'
-
-    curl -L -o /tmp/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && chmod +x /tmp/exhaustion-memory-engine-stressor
-
-    podman cp /tmp/exhaustion-memory-engine-stressor "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME":/usr/local/bin
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'curl -L -o /usr/local/bin/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && chmod +x /usr/local/bin/exhaustion-memory-engine-stressor'
 
     echo "INFO: Running the stressor script"
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source ~/.bashrc && /usr/local/bin/exhaustion-memory-engine-stressor"
