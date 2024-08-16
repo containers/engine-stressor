@@ -111,7 +111,7 @@ start_initial_container() {
 
 
     echo "INFO: Running the stressor script"
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source ~/.bashrc && /usr/local/bin/exhaustion-memory-engine-stressor"
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor"
 }
 
 # Function to get memory usage of a container as a percentage
