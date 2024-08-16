@@ -25,7 +25,7 @@ stress_memory() {
     mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
 
     # Run stress-ng to stress the percentage defined of total memory
-    STRESS_NG_CMD="sudo stress-ng \
+    STRESS_NG_CMD="stress-ng \
     --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
     --vm-bytes ${mem_to_stress}M \
     --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
