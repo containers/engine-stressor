@@ -19,102 +19,47 @@ exec_into_container() {
     sudo podman exec "$container_name" /bin/sh -c "$command"
 }
 
-list_installed_packages_with_sizes() {
-    # Define constants
-    KB=1024
-    MB=$((1024 * KB))
-    GB=$((1024 * MB))
-
-    # Capture $1 into a variable
-    output_from_dnf_list_installed="$1"
-
-    # Process the captured output
-    echo "$output_from_dnf_list_installed" | awk '{print $1}' | xargs rpm -q --qf '%-40{NAME} %-10{SIZE}\n' | awk -v KB="$KB" -v MB="$MB" -v GB="$GB" '
-    {
-        if ($2 >= GB)
-            size = sprintf("%.2f GB", $2 / GB);
-        else if ($2 >= MB)
-            size = sprintf("%.2f MB", $2 / MB);
-        else if ($2 >= KB)
-            size = sprintf("%.2f KB", $2 / KB);
-        else
-            size = sprintf("%d B", $2);
-        printf "%-40s %10s\n", $1, size;
-    }' | sort -k2 -h
-}
-
-# Function to modify the Fedora repository files inside the container
-# We are getting 404 errors in Fedora aarch64, let's try this workaround
-modify_repo_files() {
-    local container_name="$1"
-    arch=$(uname -m)
-
-    echo "Modifying the repository settings in the container: $container_name"
-    podman exec "$container_name" bash -c "
-        repos=('fedora.repo' 'fedora-updates.repo')
-
-        for repo_file in \"\${repos[@]}\"; do
-            full_path=\"/etc/yum.repos.d/\$repo_file\"
-
-            if [ -f \$full_path ]; then
-                echo '--- BEFORE modification: \$full_path ---'
-                cat \$full_path
-
-                echo 'Updating repository file: \$full_path'
-                sed -i 's|^metalink=|#metalink=|g' \$full_path
-
-                if [[ \$repo_file == 'fedora.repo' ]]; then
-                    sed -i '/^#metalink=/a baseurl=http://download-ib01.fedoraproject.org/pub/fedora/linux/releases/\$releasever/Everything/$arch/os/' \$full_path
-                elif [[ \$repo_file == 'fedora-updates.repo' ]]; then
-                    sed -i '/^#metalink=/a baseurl=https://download-ib01.fedoraproject.org/pub/fedora/linux/updates/\$releasever/Everything/$arch/' \$full_path
-                fi
-
-                echo '--- AFTER modification: \$full_path ---'
-                cat \$full_path
-            else
-                echo 'Repository file not found: \$full_path'
-            fi
-        done
-    "
-}
-
 start_initial_container() {
 
-    # echo "========== DEBUG: /etc/os-release =================="
-    # Debug: Display the contents of /etc/os-release
-    #sudo cat /etc/os-release
-    #echo "========== DEBUG: /etc/os-release =================="
+    rm -f /tmp/container_os.img
+    # Create a file to be used as a loopback device
+    echo "INFO: Creating a disk image file"
+    dd if=/dev/zero of="/tmp/container_os.img" bs=1G count=1
 
-    #echo "========== DEBUG: /etc/os-release =================="
-    # Debug: Display the contents of /etc/yum.repos.d/
-    #sudo ls /etc/yum.repos.d/
-    #echo "========== DEBUG: /etc/os-release =================="
+    # Format the file as a filesystem
+    echo "INFO: Formatting the disk image file"
+    mkfs.ext4 "/tmp/container_os.img"
+    
+    # Create a mount point and mount the loopback device
+    echo "INFO: Creating a mount point and mounting the disk image"
+    mkdir -p "/mnt/container_mem_test"
+    mount -o loop "/tmp/container_os.img" "/mnt/container_mem_test"
 
-    # read /etc/fstab
-    cat /etc/fstab
+    # Ensure the disk image is unmounted on script exit
+    trap 'umount /mnt/container_mem_test && rm -f /tmp/container_os.img' EXIT
 
     # Read OS information from /etc/os-release
-    source /etc/os-release
-
+    #source /etc/os-release
+    #
     # Check if the OS is CentOS or RHEL and the version is 9 or higher
-    if [[ "$ID" =~ ^(rhel|centos)$ && "${VERSION_ID%%.*}" -ge 9 ]]; then
-        echo "INFO: RHEL or CentOS 9 or higher detected. Creating necessary directories for volume mounts..."
-        sudo mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
-
-        VOLUME_OPTS="--volume /var/tmp/varlog:/var/log:Z \
-                     --volume /var/tmp/dnf-cache:/var/cache/dnf:Z \
-                     --volume /var/tmp/dnf-lib:/var/lib/dnf:Z \
-                     --volume /var/tmp/rpm:/var/lib/rpm:Z"
-    else
-        echo "INFO: OS is not RHEL or CentOS 9 or higher. Skipping volume mounts."
-        VOLUME_OPTS=""
-    fi
+    #if [[ "$ID" =~ ^(rhel|centos)$ && "${VERSION_ID%%.*}" -ge 9 ]]; then
+    #    echo "INFO: RHEL or CentOS 9 or higher detected. Creating necessary directories for volume mounts..."
+    #    sudo mkdir -p /var/tmp/varlog /var/tmp/dnf-cache /var/tmp/dnf-lib /var/tmp/rpm
+    #
+    #    VOLUME_OPTS="--volume /var/tmp/varlog:/var/log:Z \
+    #                 --volume /var/tmp/dnf-cache:/var/cache/dnf:Z \
+    #                 --volume /var/tmp/dnf-lib:/var/lib/dnf:Z \
+    #                 --volume /var/tmp/rpm:/var/lib/rpm:Z"
+    #else
+    #    echo "INFO: OS is not RHEL or CentOS 9 or higher. Skipping volume mounts."
+    #    VOLUME_OPTS=""
+    #fi
 
     echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
     sudo podman run -d --privileged \
         --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
         --replace \
-        --storage-opt size=10G \
+        -v /mnt/container_mem_test:/mnt/test_volume \
         --memory="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
         $VOLUME_OPTS \
         -e MEMORY_EXHAUSTION_BASE_CONTAINER_NAME="$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
@@ -151,15 +96,25 @@ start_initial_container() {
 
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "df -h"
 
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --installroot=/mnt/test_volume --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
+
+    # /etc/profile
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export PATH=/mnt/test_volume/bin:\$PATH" >> /etc/profile'
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> /etc/profile'
+
+    # ~/.bashrc
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export PATH=/mnt/test_volume/bin:\$PATH" >> ~/.bashrc'
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> ~/.bashrc'
+
+
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'source /etc/profile'
 
     curl -L -o /tmp/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && chmod +x /tmp/exhaustion-memory-engine-stressor
 
     podman cp /tmp/exhaustion-memory-engine-stressor "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME":/usr/local/bin
 
     echo "INFO: Running the stressor script"
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "/usr/local/bin/exhaustion-memory-engine-stressor"
-
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source ~/.bashrc && /usr/local/bin/exhaustion-memory-engine-stressor"
 }
 
 # Function to get memory usage of a container as a percentage

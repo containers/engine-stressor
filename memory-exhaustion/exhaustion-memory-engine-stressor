@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+source /etc/profile
+
 # Function to check if a package is installed
 is_installed() {
     rpm -q "$1" &> /dev/null
