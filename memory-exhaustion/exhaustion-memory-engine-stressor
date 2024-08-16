@@ -21,7 +21,7 @@ is_installed() {
 # Function to stress memory
 stress_memory() {
 
-    # make sure we are in a temp writable dir
+    # make sure we are in a temp writable dir (/var/tmp)
     pushd /var/tmp
         source /etc/profile
         # Calculate % of total memory
@@ -33,6 +33,10 @@ stress_memory() {
         --vm-bytes ${mem_to_stress}M \
         --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
         --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
+
+        echo "======== DEBUG: Executing =============="
+        echo "$STRESS_NG_CMD"
+        echo "======== DEBUG: Executing =============="
 
         eval "$STRESS_NG_CMD"
     popd
