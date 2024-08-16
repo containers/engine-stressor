@@ -35,6 +35,17 @@ start_initial_container() {
     mkdir -p "/mnt/container_mem_test"
     mount -o loop "/tmp/container_os.img" "/mnt/container_mem_test"
 
+    mkdir -p /mnt/container_mem_test/usr/local/bin/
+    mkdir -p /mnt/container_mem_test/etc
+    echo "export PATH=/mnt/test_volume/bin:\$PATH" >> /mnt/container_mem_test/etc/profile
+    echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> /mnt/container_mem_test/etc/profile
+
+    mkdir -p /mnt/container_mem_test/root
+    echo "export PATH=/mnt/test_volume/bin:\$PATH" >> /mnt/container_mem_test/root/.bashrc
+    echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> /mnt/container_mem_test/root/.bashrc
+
+    curl -L -o /mnt/container_mem_test/usr/local/bin/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && chmod +x /mnt/container_mem_test/usr/local/bin/exhaustion-memory-engine-stressor
+
     # Ensure the disk image is unmounted on script exit
     trap 'umount /mnt/container_mem_test && rm -f /tmp/container_os.img' EXIT
 
@@ -98,15 +109,6 @@ start_initial_container() {
 
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --installroot=/mnt/test_volume --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
 
-    # /etc/profile
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export PATH=/mnt/test_volume/bin:\$PATH" >> /etc/profile'
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> /etc/profile'
-
-    # ~/.bashrc
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export PATH=/mnt/test_volume/bin:\$PATH" >> ~/.bashrc'
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'echo "export LD_LIBRARY_PATH=/mnt/test_volume/lib:/mnt/test_volume/lib64:\$LD_LIBRARY_PATH" >> ~/.bashrc'
-
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c 'curl -L -o /usr/local/bin/exhaustion-memory-engine-stressor https://raw.githubusercontent.com/containers/engine-stressor/main/memory-exhaustion/exhaustion-memory-engine-stressor && chmod +x /usr/local/bin/exhaustion-memory-engine-stressor'
 
     echo "INFO: Running the stressor script"
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source ~/.bashrc && /usr/local/bin/exhaustion-memory-engine-stressor"
