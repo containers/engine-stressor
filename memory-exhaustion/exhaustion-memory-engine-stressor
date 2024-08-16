@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source /etc/profile
 
 # Function to check if a package is installed
 is_installed() {
@@ -21,17 +20,22 @@ is_installed() {
 
 # Function to stress memory
 stress_memory() {
-    # Calculate % of total memory
-    mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
 
-    # Run stress-ng to stress the percentage defined of total memory
-    STRESS_NG_CMD="stress-ng \
-    --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
-    --vm-bytes ${mem_to_stress}M \
-    --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
-    --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
+    # make sure we are in a temp writable dir
+    pushd /var/tmp
+        source /etc/profile
+        # Calculate % of total memory
+        mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
 
-    eval "$STRESS_NG_CMD"
+        # Run stress-ng to stress the percentage defined of total memory
+        STRESS_NG_CMD="stress-ng \
+        --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
+        --vm-bytes ${mem_to_stress}M \
+        --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
+        --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
+
+        eval "$STRESS_NG_CMD"
+    popd
 }
 
 echo "Memory Threshold is set to $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%..."
