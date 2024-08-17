@@ -22,15 +22,12 @@ is_installed() {
 stress_memory() {
 
     # make sure we are in a temp writable dir (/var/tmp)
-    pushd /var/tmp
+    pushd /var/tmp || exit
         source /etc/profile
-        # Calculate % of total memory
-        mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
-
         # Run stress-ng to stress the percentage defined of total memory
         STRESS_NG_CMD="stress-ng \
         --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
-        --vm-bytes ${mem_to_stress}M \
+        --vm-bytes 90% \
         --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
         --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
 
@@ -39,7 +36,7 @@ stress_memory() {
         echo "======== DEBUG: Executing =============="
 
         eval "$STRESS_NG_CMD"
-    popd
+    popd || exit
 }
 
 echo "Memory Threshold is set to $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT%..."
