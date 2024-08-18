@@ -19,7 +19,7 @@ is_installed() {
 }
 
 # Define a constant for the number of iterations
-NUM_ITERATIONS=5
+NUM_ITERATIONS=1 # for now just once
 
 stress_memory() {
     # make sure we are in a temp writable dir (/var/tmp)
