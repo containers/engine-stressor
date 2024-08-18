@@ -36,6 +36,13 @@ create_network() {
         echo -e "INFO: creating network ${NETWORK_NAME}"
     fi
 
+    if podman network exists "${NETWORK_NAME}"; then
+        if ! podman network rm "${NETWORK_NAME}" --force 1> /dev/null; then
+            echo -e "FAIL: unable to remove network $NETWORK_NAME."
+	    return 1
+        fi
+    fi
+
     if ! podman network create ${NETWORK_NAME} 1> /dev/null; then
 	echo -e "FAIL: unable to create network ${NETWORK_NAME}"
 	return 1
@@ -62,7 +69,6 @@ remove_network() {
     if ! podman network rm "${NETWORK_NAME}" --force 1> /dev/null; then
         echo -e "FAIL: unable to remove network $NETWORK_NAME."
 	return 1
-	#exit 255
     fi
     if [[ "$VERBOSE" = "${FEATURE_ENABLED}" ]]; then
         echo -e "PASS: network ${NETWORK_NAME} removed."
