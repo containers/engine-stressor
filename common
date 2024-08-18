@@ -40,7 +40,6 @@ on_error() {
             echo -e "INFO: Removing volume ${VOLUME_NAME}..."
         fi
         ./engine-operations --cleanup-vol
-        cgroup_remove
     fi
     exit 1
 }
