@@ -118,7 +118,7 @@ start_initial_container() {
     echo "====  DEBUG df ====================="
 
     echo "INFO: Running the stressor script"
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor &"
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor"
 
     # Generating 10G file
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && dd if=/dev/zero of=/var/tmp/largefile bs=1G count=10"
