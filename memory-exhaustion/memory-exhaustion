@@ -109,6 +109,9 @@ start_initial_container() {
 
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --installroot=/mnt/test_volume --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
 
+    echo "====  DEBUG   ====================="
+    free -hg
+    echo "====  DEBUG   ====================="
 
     echo "INFO: Running the stressor script"
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor"
@@ -133,7 +136,7 @@ create_additional_containers() {
     echo "INFO: Creating additional containers inside $container_name"
     for i in $(seq 1 "$NUMBER_OF_CONTAINERS"); do
         local additional_container_name="${container_name}_nested_$i"
-        local run_cmd="podman run -d --name \"$additional_container_name\" --privileged $IMAGE_NAME_CONTAINER sleep infinity"
+        local run_cmd="podman run -d --memory 8g --name \"$additional_container_name\" --privileged $IMAGE_NAME_CONTAINER sleep infinity"
         echo "INFO: Running nested container $additional_container_name inside $container_name with image $IMAGE_NAME_CONTAINER"
         echo "INFO: $run_cmd"
         if ! sudo podman exec "$container_name" sh -c "$run_cmd"; then
