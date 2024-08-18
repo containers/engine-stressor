@@ -30,6 +30,15 @@ create_volume() {
         echo -e "INFO: creating volume ${VOLUME_NAME}"
     fi
 
+    if podman volume exists "${VOLUME_NAME}" 1> /dev/null; then
+        echo "Volume ${VOLUME_NAME} exists. Removing it..."
+        if ! podman volume rm "${VOLUME_NAME}" --force 1> /dev/null; then
+	    echo -e "FAIL: unable to remove volume ${VOLUME_NAME}"
+            exit 255
+        fi
+        echo "Volume ${VOLUME_NAME} removed."
+    fi
+
     if ! podman volume create "${VOLUME_NAME}" 1> /dev/null; then
 	echo -e "FAIL: unable to create volume ${VOLUME_NAME}."
         exit 255
