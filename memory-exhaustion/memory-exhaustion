@@ -109,12 +109,19 @@ start_initial_container() {
 
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --installroot=/mnt/test_volume --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
 
-    echo "====  DEBUG   ====================="
+    echo "====  DEBUG free ====================="
     free -hg
-    echo "====  DEBUG   ====================="
+    echo "====  DEBUG free ====================="
+
+    echo "====  DEBUG df ====================="
+    df -h
+    echo "====  DEBUG df ====================="
 
     echo "INFO: Running the stressor script"
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor"
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor &"
+
+    # Generating 10G file
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && dd if=/dev/zero of=/var/tmp/largefile bs=1G count=10"
 }
 
 # Function to get memory usage of a container as a percentage
