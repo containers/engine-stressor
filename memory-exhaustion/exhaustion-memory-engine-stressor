@@ -38,6 +38,7 @@ stress_memory() {
         STRESS_NG_CMD="stress-ng \
             --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
             --vm-bytes ${mem_to_stress}M \
+            --vm-hang 5 \
             --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
             --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
 
