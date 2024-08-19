@@ -29,7 +29,7 @@ stress_memory() {
         mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
 	echo $threshold
 	echo $mem_to_stress
-	mem_to_stress=$mem_to_stress*2
+	mem_to_stress=$(( mem_to_stress * 2 ))
 	echo $mem_to_stress
 
         # Loop to execute the stress-ng command NUM_ITERATIONS times
