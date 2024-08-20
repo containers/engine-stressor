@@ -70,6 +70,7 @@ start_initial_container() {
     sudo podman run -d --privileged \
         --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
         --replace \
+	--network=host \
 	-v /etc/containers/networks:/etc/containers/networks:rw \
         -v /mnt/container_mem_test:/mnt/test_volume \
         $VOLUME_OPTS \
