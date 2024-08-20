@@ -67,30 +67,31 @@ start_initial_container() {
     #fi
 
     echo "INFO: Starting initial container $MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
-    sudo podman run -d --privileged \
-        --name "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
-        --replace \
-	--network=host \
-	-v /etc/containers/networks:/etc/containers/networks:rw \
-        -v /mnt/container_mem_test:/mnt/test_volume \
-        $VOLUME_OPTS \
-        -e MEMORY_EXHAUSTION_BASE_CONTAINER_NAME="$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" \
-        -e MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT="$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT" \
-        -e IMAGE_NAME_CONTAINER="$IMAGE_NAME_CONTAINER" \
-        -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT" \
-        -e MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT="$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT" \
-        -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM" \
-        -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD="$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD" \
-        "$IMAGE_NAME_CONTAINER" sleep infinity
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Failed to start the initial container."
-        return 1
-    fi
+    # Construct the podman command as a string
+    PODMAN_CMD="sudo podman run -d --privileged \
+    --name \"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\" \
+    --replace \
+    --network=host \
+    -v /mnt/container_mem_test:/mnt/test_volume \
+    $VOLUME_OPTS \
+    -e MEMORY_EXHAUSTION_BASE_CONTAINER_NAME=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME\" \
+    -e MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_MEMORY_LIMIT\" \
+    -e IMAGE_NAME_CONTAINER=\"$IMAGE_NAME_CONTAINER\" \
+    -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT\" \
+    -e MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT\" \
+    -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM\" \
+    -e MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD=\"$MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD\" \
+    \"$IMAGE_NAME_CONTAINER\" sleep infinity"
+
+    # Echo the command to the screen
+    echo "Executing: $PODMAN_CMD"
+
+    # Execute the command
+    eval $PODMAN_CMD
 
     echo "====== DEBUG INSPECT PODMAN ========"
     sudo podman inspect "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME"
     echo "====== DEBUG INSPECT PODMAN ========"
-
 
     echo "INFO: Waiting for the container to be fully started..."
     for i in {1..10}; do
