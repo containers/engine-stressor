@@ -26,6 +26,10 @@ stress_memory() {
 
     # Calculate % of total memory
     mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
+    echo "Memory to stress: $mem_to_stress MB (before multiplication)"
+    mem_to_stress=$(( mem_to_stress * 2 ))
+    echo "Memory to stress: $mem_to_stress MB (after multiplication)"
+
 
     # Loop to execute the stress-ng command NUM_ITERATIONS times
     for ((i = 1; i <= NUM_ITERATIONS; i++)); do
