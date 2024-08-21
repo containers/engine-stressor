@@ -125,7 +125,7 @@ start_initial_container() {
 
     # make sure we do the pull before the stress happens - to avoid issues with network
     echo "INFO: Executing podman pull before stress script..."
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "podman pull quay.io/podman/stable"
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman pull quay.io/podman/stable
 
     echo "INFO: Running the stressor script"
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor"
