@@ -152,7 +152,7 @@ create_additional_containers() {
 
 	local run_cmd="podman run -d \
                          --name \"$additional_container_name\" \
-                         --network=none \
+                         --net=host \
                          --privileged \
                          $IMAGE_NAME_CONTAINER \
                          sleep infinity"
