@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  shellcheck-security-check:
+  shellcheck-check:
     runs-on: ubuntu-latest
     
     steps:
