@@ -3,6 +3,8 @@
 # Description: Clones the engine-stressor repository, installs and run it.
 
 # Include BeakerLib environment
+
+# shellcheck source=/usr/share/beakerlib/beakerlib.sh
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
 PACKAGE="engine-stressor"
