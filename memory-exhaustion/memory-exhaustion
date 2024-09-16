@@ -176,7 +176,7 @@ cleanup_nested_containers() {
     echo "INFO: Cleaning up nested containers"
     for i in $(seq 1 $NUMBER_OF_CONTAINERS); do
         local additional_container_name="${MEMORY_EXHAUSTION_BASE_CONTAINER_NAME}_nested_$i"
-        if podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman stop "$additional_container_name" && podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman rm "$additional_container_name" --force; then
+        if podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman stop -t0 "$additional_container_name" && podman exec "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" podman rm "$additional_container_name" --force; then
             echo "INFO: Nested container $additional_container_name stopped and removed successfully"
         else
             echo "ERROR: Failed to stop and remove nested container $additional_container_name"
