@@ -4,7 +4,7 @@
 
 # Include BeakerLib environment
 
-# shellcheck source=/usr/share/beakerlib/beakerlib.sh
+# shellcheck source=/dev/null
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
 REPO="https://github.com/containers/engine-stressor"
