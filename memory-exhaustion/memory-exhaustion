@@ -113,7 +113,7 @@ start_initial_container() {
 
     exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "df -h"
 
-    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --installroot=/mnt/test_volume --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
+    exec_into_container "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" "dnf install --installroot=/mnt/test_volume --use-host-config --releasever=\$(source /etc/os-release && echo \$VERSION_ID) -y stress-ng procps-ng"
 
     echo "====  DEBUG free ====================="
     free -hg
@@ -216,7 +216,7 @@ handle_error() {
 
 memory_exhaustion_test() {
     # Constants
-    local TIMEOUT=1500  # 25 minutes in seconds
+    local TIMEOUT="$MEMORY_EXHAUSTION_TEST_TIMEOUT"
 
     # Start the initial container
     start_initial_container &
@@ -268,7 +268,7 @@ memory_exhaustion_test() {
     done
 
     # If the timeout is reached
-    echo "INFO: Memory exhaustion test timed out after 25 minutes."
+    echo "INFO: Memory exhaustion test timed out after ${TIMEOUT/60} minutes."
     cleanup_initial_container
     echo "FAIL: Memory exhaustion test did not complete within the timeout period"
     exit 1
