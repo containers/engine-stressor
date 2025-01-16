@@ -131,7 +131,7 @@ start_initial_container() {
     podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && /mnt/test_volume/usr/local/bin/exhaustion-memory-engine-stressor"
 
     # Generating 10G file
-    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && dd if=/dev/zero of=/var/tmp/largefile bs=1G count=$MEMORY_EXHAUSTION_LARGEFILE_SIZE"
+    podman exec -it "$MEMORY_EXHAUSTION_BASE_CONTAINER_NAME" /bin/bash -c "source /mnt/test_volume/root/.bashrc && cd /var/tmp/ && dd if=/dev/zero of=/var/tmp/largefile bs=1G count=${MEMORY_EXHAUSTION_LARGEFILE_SIZE:-10}"
 }
 
 # Function to get memory usage of a container as a percentage
@@ -216,7 +216,7 @@ handle_error() {
 
 memory_exhaustion_test() {
     # Constants
-    local TIMEOUT="$MEMORY_EXHAUSTION_TEST_TIMEOUT"
+    local TIMEOUT="${MEMORY_EXHAUSTION_TEST_TIMEOUT:-1500}" # 25 minutes in seconds
 
     # Start the initial container
     start_initial_container &
