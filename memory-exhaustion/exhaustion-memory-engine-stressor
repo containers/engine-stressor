@@ -18,39 +18,49 @@ is_installed() {
 NUM_ITERATIONS=${NUM_ITERATIONS:-1} # Default to 1 if not set
 
 stress_memory() {
-    # Make sure we are in a temp writable dir (/var/tmp)
-    pushd /var/tmp || exit
-
-    # Source profile (optional, depending on need)
+    pushd /var/tmp || exit 1
     source /etc/profile
 
-    # Calculate % of total memory
-    mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
-    echo "Memory to stress: $mem_to_stress MB (before multiplication)"
-    mem_to_stress=$(( mem_to_stress * 2 ))
-    echo "Memory to stress: $mem_to_stress MB (after multiplication)"
+    threshold=${MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT:-75}
+    vm_workers=${MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM:-8}
 
+    mem_available_kib=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
 
-    # Loop to execute the stress-ng command NUM_ITERATIONS times
+    mem_available_gib=$(awk "BEGIN {printf \"%.2f\", $mem_available_kib/1024/1024}")
+    
+    # TOTAL stress target
+    mem_to_stress_gib=$(awk "BEGIN {printf \"%.2f\", $mem_available_gib * $threshold / 100}")
+    mem_to_stress_mb=$(awk "BEGIN {printf \"%.0f\", $mem_to_stress_gib * 1024}")
+
+    # DO NOT divide by workers
+    total_vm_bytes_mb=$mem_to_stress_mb
+
+    per_worker_mb=$(awk -v total="$total_vm_bytes_mb" -v w="$vm_workers" \
+        'BEGIN {printf "%.0f", total / w}')
+
+    echo "Memory Available: ${mem_available_gib} GiB"
+    echo "Total stress target: ${mem_to_stress_gib} GiB = ${threshold}% Memory threshold of ${mem_available_gib} GiB Memory available"
+    echo "VM workers: ${vm_workers}"
+    echo "Expected per worker (stress-ng internal): ~${per_worker_mb} MB"
+
     for ((i = 1; i <= NUM_ITERATIONS; i++)); do
-        echo "Iteration $i of $NUM_ITERATIONS"
+        echo "Iteration $i"
 
-        # Run stress-ng to stress the percentage defined of total memory
         STRESS_NG_CMD="stress-ng \
-            --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
-            --vm-bytes ${mem_to_stress}M \
+            --vm $vm_workers \
+            --vm-bytes ${total_vm_bytes_mb}M \
             --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
             --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
 
-        echo "======== DEBUG: Executing =============="
+        echo "======== DEBUG ========="
         echo "$STRESS_NG_CMD"
-        echo "======== DEBUG: Executing =============="
-
+        echo "======================="
         eval "$STRESS_NG_CMD"
     done
 
-    popd || exit
+    popd || exit 1
 }
+
 
 # Ensure required environment variables are set
 : "${MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT:?Environment variable not set or empty}"
