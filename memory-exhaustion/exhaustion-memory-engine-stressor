@@ -49,6 +49,7 @@ stress_memory() {
         STRESS_NG_CMD="stress-ng \
             --vm $vm_workers \
             --vm-bytes ${total_vm_bytes_mb}M \
+            --oom-avoid \
             --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
             --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
 
