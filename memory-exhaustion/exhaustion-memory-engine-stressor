@@ -24,30 +24,66 @@ stress_memory() {
     # Source profile (optional, depending on need)
     source /etc/profile
 
-    # Calculate % of total memory
-    mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {print int($2 * threshold / 100)}')
-    echo "Memory to stress: $mem_to_stress MB (before multiplication)"
-    mem_to_stress=$(( mem_to_stress * 2 ))
-    echo "Memory to stress: $mem_to_stress MB (after multiplication)"
+    local pids=()
+    local max_attempts=10
+    local settle_seconds=3
 
-
-    # Loop to execute the stress-ng command NUM_ITERATIONS times
     for ((i = 1; i <= NUM_ITERATIONS; i++)); do
         echo "Iteration $i of $NUM_ITERATIONS"
 
-        # Run stress-ng to stress the percentage defined of total memory
-        STRESS_NG_CMD="stress-ng \
-            --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
-            --vm-bytes ${mem_to_stress}M \
-            --oom-avoid \
-            --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
-            --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
+        # Feedback loop: --oom-avoid causes a single stress-ng run to back off before
+        # reaching the threshold. Spawn instances in the background (each holding pages
+        # with --vm-keep) and keep filling the remaining gap until the threshold is met.
+        local attempt=0
+        while [[ $attempt -lt $max_attempts ]]; do
+            ((attempt++))
 
-        echo "======== DEBUG: Executing =============="
-        echo "$STRESS_NG_CMD"
-        echo "======== DEBUG: Executing =============="
+            local current_percent
+            current_percent=$(free -m | awk '/Mem:/ {printf "%.0f", ($2 - $7) * 100 / $2}')
+            echo "Current memory usage: ${current_percent}% (fill attempt ${attempt}/${max_attempts})"
 
-        eval "$STRESS_NG_CMD"
+            if [[ $current_percent -ge $MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT ]]; then
+                echo "Threshold ${MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT}% reached."
+                break
+            fi
+
+            local mem_to_stress
+            mem_to_stress=$(free -m | awk -v threshold=$MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT '/Mem:/ {
+                need = int($7 - $2 * (100 - threshold) / 100)
+                print (need > 0 ? need : 0)
+            }')
+
+            if [[ $mem_to_stress -eq 0 ]]; then
+                echo "No remaining gap to fill."
+                break
+            fi
+
+            echo "Spawning stress-ng: ${mem_to_stress}MB to close gap to ${MEMORY_EXHAUSTION_BASE_CONTAINER_THRESHOLD_PERCENT}%"
+            STRESS_NG_CMD="stress-ng \
+                --vm $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM \
+                --vm-bytes ${mem_to_stress}M \
+                --vm-keep \
+                --oom-avoid \
+                --vm-method $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_VM_METHOD \
+                --timeout $MEMORY_EXHAUSTION_BASE_CONTAINER_STRESS_NG_TIMEOUT"
+
+            echo "======== DEBUG: Executing =============="
+            echo "$STRESS_NG_CMD"
+            echo "======== DEBUG: Executing =============="
+
+            eval "$STRESS_NG_CMD" &
+            pids+=($!)
+
+            sleep "$settle_seconds"
+        done
+    done
+
+    echo "Memory state after all fill attempts:"
+    free -m
+
+    echo "Waiting for all stress-ng processes to complete..."
+    for pid in "${pids[@]}"; do
+        wait "$pid"
     done
 
     popd || exit
